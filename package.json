@@ -1,0 +1,31 @@
+{
+  "name": "@platformatic/desk",
+  "version": "1.0.0",
+  "description": "Successor to cloud-in-box, providing a development and sales demo environment for Platformatic",
+  "type": "module",
+  "main": "cli.js",
+  "bin": {
+    "desk": "cli.js"
+  },
+  "scripts": {
+    "test": "node --test tests/"
+  },
+  "author": "Platformatic Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/platformatic/desk-cli.git"
+  },
+  "dependencies": {
+    "commist": "^3.2.0",
+    "debug": "^4.3.7",
+    "minimist": "^1.2.8",
+    "nano-spawn": "^1.0.2",
+    "picocolors": "^1.1.1",
+    "yaml": "^2.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.31.0",
+    "neostandard": "^0.12.2"
+  }
+}
