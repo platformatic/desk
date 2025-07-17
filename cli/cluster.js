@@ -10,10 +10,11 @@ export default async function cli(argv) {
   });
   const [cmd] = args._;
 
+  const context = await loadContext(args.profile);
+
   if (cmd === 'up') {
-    const context = await loadContext(args.profile);
-    console.log('Loaded context:', context);
-    // Add logic to use the context for cluster operations
+  } else if (cmd === 'down') {
+  } else if (cmd === 'status') {
   } else {
     console.error(`Unknown command: ${cmd}`);
   }
