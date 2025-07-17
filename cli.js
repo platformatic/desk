@@ -1,10 +1,9 @@
+import { readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import minimist from 'minimist'
 import commist from 'commist'
-import cluster from './cli/cluster.js'
-import deploy from './cli/deploy.js'
-import profile from './cli/profile.js'
-import help from './cli/help.js'
-import { info } from './lib/utils.js'
+import { info, warn, error, section } from './lib/utils.js'
+import help from './lib/help.js'
 
 const program = commist()
 
@@ -12,33 +11,45 @@ async function main () {
   const argv = process.argv.splice(2)
 
   if (argv.length === 0) {
-    info(help())
+    info(await help())
     process.exit(0)
   }
 
   const globalArgs = minimist(argv, {
     boolean: ['help'],
-    string: ['profile'],
     alias: {
       help: 'h',
-      profile: 'p'
     }
   })
 
   if (argv.length > 0 && globalArgs.help) {
-    info(help(argv))
+    info(await help(argv))
     process.exit(0)
   }
 
-  const result = await program
-    .register({ command: 'help', strict: true }, async function () {
-      // line(help())
-      process.exit(0)
-    })
-    .register({ command: 'cluster', strict: true }, cluster)
-    .register({ command: 'deploy', strict: true }, deploy)
-    .register({ command: 'profile', strict: true }, profile)
-    .parseAsync(argv)
+  const commandsPath = join(import.meta.dirname, 'cli')
+  for (const dirent of await readdir(commandsPath, { withFileTypes: true })) {
+    if (!dirent.isFile()) continue
+    const { default: cmd, options } = await import(join(commandsPath, dirent.name))
+
+    if (!options || !cmd) throw new Error(`Command is not configured correctly: ${dirent.name}`)
+
+    program.register(options, cmd)
+  }
+
+  program.register({ command: 'test', strict: true }, function () {
+    section('Testing')
+    info('info Without args')
+    info('info With args', { lol: 'lollers' })
+
+    warn('warn Without args')
+    warn('warn With args', { lol: 'lollers' })
+
+    error('error Without args')
+    error('error With args', { lol: 'lollers' })
+  })
+
+  const result = await program.parseAsync(argv)
 
   return result
 }

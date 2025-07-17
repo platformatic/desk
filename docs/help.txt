@@ -1,0 +1,15 @@
+desk
+
+A tool for local Kubernetes clusters oriented towards Platformatic testing and development.
+
+Usage:
+	desk <command> [flags]
+
+Available commands:
+	cluster		Manage a Platformatic-Kubernetes cluster
+	deploy		Deploy a wattpro application into a cluster
+	help		This screen, right here
+	profile		Manage cluster profiles
+
+Flags:
+	-h, --help	Help with commands

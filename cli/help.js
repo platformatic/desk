@@ -1,14 +1,9 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import help from '../lib/help.js'
+import { info } from '../lib/utils.js'
 
-const HELP_DOCS_DIR = join(import.meta.dirname, '..', 'docs')
+export const options = { command: 'help', strict: true }
 
-export default function help (command = []) {
-  command = command.filter(c => c.startsWith('-') === false)
-  if (command.length === 0) command = ['help']
-
-  command[command.length - 1] = `${command[command.length - 1]}.txt` 
-
-  const helpDoc = join(HELP_DOCS_DIR, ...command)
-  return readFileSync(helpDoc, 'utf-8')
+export default async function cli (args) {
+	info(await help(args))
+	process.exit(0)
 }

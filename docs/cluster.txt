@@ -1,0 +1,13 @@
+Cluster management
+
+Usage:
+	desk cluster <command> [flags]
+
+Available commands:
+	up		Start a Kubernetes cluster
+	down		Shutdown a Kubernetes cluster
+	status		View current state of Kubernetes cluster
+
+Flags:
+	-h, --help	Help with cluster commands
+	-p, --profile	Interact with a particular profile. Defaults to 'default'
