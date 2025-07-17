@@ -1,22 +1,20 @@
-import minimist from 'minimist'
-import { error } from '../lib/utils.js'
+import minimist from 'minimist';
+import { loadContext } from '../lib/context.js';
 
-export const options = { command: 'cluster', strict: true }
-
-export default async function cli (argv) {
+export default async function cli(argv) {
   const args = minimist(argv, {
     string: ['profile'],
     alias: {
       profile: 'p',
     }
-  })
-  const [cmd] = args._
+  });
+  const [cmd] = args._;
 
   if (cmd === 'up') {
-  } else if (cmd === 'down') {
-  } else if (cmd === 'status') {
+    const context = await loadContext(args.profile);
+    console.log('Loaded context:', context);
+    // Add logic to use the context for cluster operations
   } else {
-    error(`Unknown subcommand: ${cmd}`)
-    process.exit(1)
+    console.error(`Unknown command: ${cmd}`);
   }
 }
