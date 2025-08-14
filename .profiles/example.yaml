@@ -1,0 +1,78 @@
+# Configuration version
+version: 4
+
+# Define the cluster provider and any relevant details
+# When the cluster is created, it will be named after this file: plt-example
+cluster:
+  # This is the cluster provider key
+  k3d:
+    nodes: 1
+
+# Define the charts to be installed in your cluster
+dependencies:
+  prometheus-community/prometheus-adapter:
+    # When set to false, the _overrides.yaml_ file in the chart directory is
+    # ignored
+    plt_defaults: true
+  prometheus-community/kube-prometheus-stack:
+    plt_defaults: true
+  bitnamicharts/postgresql:
+    plt_defaults: true
+  bitnamicharts/valkey:
+    plt_defaults: true
+
+# Define what Platformatic applications to deploy and where they are sourced from
+platformatic:
+  icc:
+    image:
+      tag: "release"
+      repository: "ghcr.io/platformatic/plt-icc-3"
+    # Matches the features available in our Helm chart
+    features:
+      cache_recommendations:
+        enable: false
+      risk_service_dump:
+        enable: false
+      ffc:
+        enable: false
+      icc_jobs:
+        enable: true
+      # When `icc.hotReload` is set to `true` then `desk` will set `features.dev_mode.enable`
+      # to `true`. Any value set here will be ignored.
+      dev_mode:
+        enable: false
+    # Matches the login methods available in our Helm chart
+    # If no method is enabled, `login_methods.demo` will be enabled.
+    login_methods:
+      google_oauth:
+        enable: false
+        client_id: ""
+        client_secret: ""
+      github_oauth:
+        enable: false
+        client_id: ""
+        client_secret: ""
+      password:
+        enable: false
+      demo:
+        enable: false
+    log_level: info
+    # In production, these would be randomly and secretly generated. It is safe
+    # to set dummy values that are easy to remember or debug
+    secrets:
+      icc_session: ""
+      control_plane_keys: ""
+      user_manager_session: ""
+
+  machinst:
+    hotReload: true
+    local:
+      path: "/home/root/why-would-you-do-this/machinist-3"
+    features:
+      event_export:
+        enable: false
+      # When `machinist.hotReload` is set to `true` then `desk` will set `features.dev_mode.enable`
+      # to `true`. Any value set here will be ignored.
+      dev_mode:
+        enable: false
+    log_level: warn

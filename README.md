@@ -41,7 +41,7 @@ desk profile cache <profile-name>
 
 ### Deploy
 
-Deploy an application into Kubernetes:
+Deploy an existing image into Kubernetes:
 
 ```sh
 desk deploy --profile <name> --image some-prebuilt-app:latest
@@ -58,3 +58,10 @@ Deploy with an environment file:
 ```sh
 desk deploy --profile <name> --dir ./my-watt-project --envfile ./my-watt-project/.env
 ```
+
+## Troubleshooting
+
+Use `DEBUG=plt-desk*` to view debug statements. The output can be narrowed down
+to:
+
+* cluster specific: `DEBUG=plt-desk:cluster`

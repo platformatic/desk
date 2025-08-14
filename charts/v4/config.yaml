@@ -1,0 +1,64 @@
+# Define the cluster provider and any necessary configuration
+cluster:
+  k3d:
+    nodes: 1
+    ports:
+      - 443
+    args:
+      - '--k3s-arg=--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@server:*'
+      - '--k3s-arg=--kubelet-arg=eviction-minimum-reclaim=imagefs.available=1%,nodefs.available=1%@server:*'
+    registry:
+      address: "k3d-plt-registry:5000"
+      # Relative to charts version path
+      configPath: "k3d/registry.yaml"
+
+# Define which charts are used
+# Each chart should have a folder path with the following files:
+# overrides.yaml - overrides the default configuration from the chart provider
+# offline.yaml - defines the additional elements that need to be downloaded for fully-offline cluster building
+dependencies:
+  platformatic/helm:
+    location: 'oci://ghcr.io/platformatic/helm'
+    releaseName: 'platformatic'
+    version: '4.0.0.alpha.1'
+
+  prometheus-community/prometheus-adapter:
+    repo: 'https://prometheus-community.github.io/helm-charts'
+    releaseName: 'prometheus-adapter'
+    version: '4.11.0'
+
+  bitnamicharts/valkey:
+    repo: 'https://charts.bitnami.com/bitnami'
+    releaseName: 'valkey'
+    version: '2.0.0'
+
+  prometheus-community/kube-prometheus-stack:
+    repo: 'https://prometheus-community.github.io/helm-charts'
+    releaseName: 'prometheus'
+    version: '65.3.2'
+
+  bitnamicharts/postgresql:
+    repo: 'https://charts.bitnami.com/bitnami'
+    releaseName: 'postgresql'
+    version: '16.0.5'
+
+  envoyproxy/gateway-helm:
+    location: 'oci://registry-1.docker.io/envoyproxy/gateway-helm'
+    releaseName: 'envoy-gateway'
+    version: '1.4.2'
+
+databaseServer: ""
+
+valkey:
+  - name: applications
+    address: ""
+  - name: icc
+    address: ""
+
+apps:
+  - name: icc
+    url: "git@github.com:platformatic/icc-3.git"
+    defaultBranch: 'demo'
+  - name: machinist
+    url: "git@github.com:platformatic/machinist-3.git"
+    defaultBranch: 'demo'

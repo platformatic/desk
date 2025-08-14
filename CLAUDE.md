@@ -1,6 +1,7 @@
 # What is this
 
-`desk` is a CLI application for managing Kubernetes clusters locally using k3d.
+`desk` is a CLI application for managing Kubernetes clusters locally using
+different local kubernetes providers.
 
 # Code style
 - use ES modules (import/export) syntax, not CommonJS

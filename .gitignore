@@ -1,3 +1,5 @@
 .env*
 node_modules/
 .aider*
+.profiles/*
+!.profiles/example.yaml

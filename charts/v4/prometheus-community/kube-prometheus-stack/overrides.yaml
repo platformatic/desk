@@ -1,0 +1,763 @@
+# Default values for kube-prometheus-stack.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Install Prometheus Operator CRDs
+##
+crds:
+  enabled: true
+
+## Create default rules for monitoring the cluster
+##
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    configReloaders: true
+    general: true
+    k8sContainerCpuUsageSecondsTotal: true
+    k8sContainerMemoryCache: true
+    k8sContainerMemoryRss: true
+    k8sContainerMemorySwap: true
+    k8sContainerResource: true
+    k8sContainerMemoryWorkingSetBytes: true
+    k8sPodOwner: true
+    kubeApiserverAvailability: true
+    kubeApiserverBurnrate: true
+    kubeApiserverHistogram: true
+    kubeApiserverSlos: true
+    kubeControllerManager: true
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeSchedulerAlerting: true
+    kubeSchedulerRecording: true
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: true
+    windows: true
+
+  ## Reduce app namespace alert scope
+  #appNamespacesTarget: ".*"
+
+
+global:
+  rbac:
+    create: true
+    createAggregateClusterRoles: false
+    pspEnabled: false
+
+windowsMonitoring:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+kubernetesServiceMonitors:
+  enabled: true
+
+## Component scraping the kube api server
+##
+kubeApiServer:
+  enabled: true
+  tlsConfig:
+    serverName: kubernetes
+    insecureSkipVerify: false
+  serviceMonitor:
+    jobLabel: component
+    selector:
+      matchLabels:
+        component: apiserver
+        provider: kubernetes
+
+    ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    metricRelabelings:
+      # Drop excessively noisy apiserver buckets.
+      - action: drop
+        regex: apiserver_request_duration_seconds_bucket;(0.15|0.2|0.3|0.35|0.4|0.45|0.6|0.7|0.8|0.9|1.25|1.5|1.75|2|3|3.5|4|4.5|6|7|8|9|15|25|40|50)
+        sourceLabels:
+          - __name__
+          - le
+
+## Component scraping the kubelet and kubelet-hosted cAdvisor
+##
+kubelet:
+  enabled: true
+  namespace: kube-system
+
+  serviceMonitor:
+    ## Attach metadata to discovered targets. Requires Prometheus v2.45 for endpoints created by the operator.
+    ##
+    attachMetadata:
+      node: false
+
+    ## If true, Prometheus use (respect) labels provided by exporter.
+    ##
+    honorLabels: true
+
+    ## If true, Prometheus ingests metrics with timestamp provided by exporter. If false, Prometheus ingests metrics with timestamp of scrape.
+    ##
+    honorTimestamps: true
+
+    ## Enable scraping the kubelet over https. For requirements to enable this see
+    ## https://github.com/prometheus-operator/prometheus-operator/issues/926
+    ##
+    https: true
+
+    ## Skip TLS certificate validation when scraping.
+    ## This is enabled by default because kubelet serving certificate deployed by kubeadm is by default self-signed
+    ## ref: https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-certs/#kubelet-serving-certs
+    ##
+    insecureSkipVerify: true
+
+    ## Enable scraping /metrics/cadvisor from kubelet's service
+    ##
+    cAdvisor: true
+
+    ## Enable scraping /metrics/probes from kubelet's service
+    ##
+    probes: true
+
+    ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    cAdvisorMetricRelabelings:
+      # Drop less useful container CPU metrics.
+      - sourceLabels: [__name__]
+        action: drop
+        regex: "container_cpu_(cfs_throttled_seconds_total|load_average_10s|system_seconds_total|user_seconds_total)"
+      # Drop less useful container / always zero filesystem metrics.
+      - sourceLabels: [__name__]
+        action: drop
+        regex: "container_fs_(io_current|io_time_seconds_total|io_time_weighted_seconds_total|reads_merged_total|sector_reads_total|sector_writes_total|writes_merged_total)"
+      # Drop less useful / always zero container memory metrics.
+      - sourceLabels: [__name__]
+        action: drop
+        regex: "container_memory_(mapped_file|swap)"
+      # Drop less useful container process metrics.
+      - sourceLabels: [__name__]
+        action: drop
+        regex: "container_(file_descriptors|tasks_state|threads_max)"
+      # Drop container spec metrics that overlap with kube-state-metrics.
+      - sourceLabels: [__name__]
+        action: drop
+        regex: "container_spec.*"
+      # Drop cgroup metrics with no pod.
+      - sourceLabels: [id, pod]
+        action: drop
+        regex: '.+;'
+
+    ## RelabelConfigs to apply to samples before scraping
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    ## metrics_path is required to match upstream rules and charts
+    cAdvisorRelabelings:
+      - action: replace
+        sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+
+    ## RelabelConfigs to apply to samples before scraping
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    probesRelabelings:
+      - action: replace
+        sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+
+    ## RelabelConfigs to apply to samples before scraping
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    resourceRelabelings:
+      - action: replace
+        sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+
+    ## RelabelConfigs to apply to samples before scraping
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    ## metrics_path is required to match upstream rules and charts
+    relabelings:
+      - action: replace
+        sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+
+## Component scraping the kube controller manager
+##
+kubeControllerManager:
+  enabled: true
+
+  ## If using kubeControllerManager.endpoints only the port and targetPort are used
+  ##
+  service:
+    enabled: true
+    ## If null or unset, the value is determined dynamically based on target Kubernetes version due to change
+    ## of default port in Kubernetes 1.22.
+    ##
+    port: null
+    targetPort: null
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+
+  serviceMonitor:
+    enabled: true
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
+
+    jobLabel: jobLabel
+
+    ## Enable scraping kube-controller-manager over https.
+    ## Requires proper certs (not self-signed) and delegated authentication/authorization checks.
+    ## If null or unset, the value is determined dynamically based on target Kubernetes version.
+    ##
+    https: null
+
+    # Skip TLS certificate validation when scraping
+    insecureSkipVerify: null
+
+    # Name of the server to use when validating TLS certificate
+    serverName: null
+
+## Component scraping coreDns. Use either this or kubeDns
+##
+coreDns:
+  enabled: true
+  service:
+    enabled: true
+    port: 9153
+    targetPort: 9153
+
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+  serviceMonitor:
+    enabled: true
+    ## Scrape interval. If not set, the Prometheus default scrape interval is used.
+    ##
+    interval: ""
+
+    ## SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
+    ##
+    sampleLimit: 0
+
+    ## TargetLimit defines a limit on the number of scraped targets that will be accepted.
+    ##
+    targetLimit: 0
+
+    ## Per-scrape limit on number of labels that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+    ##
+    labelLimit: 0
+
+    ## Per-scrape limit on length of labels name that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+    ##
+    labelNameLengthLimit: 0
+
+    ## Per-scrape limit on length of labels value that will be accepted for a sample. Only valid in Prometheus versions 2.27.0 and newer.
+    ##
+    labelValueLengthLimit: 0
+
+    ## proxyUrl: URL of a proxy that should be used for scraping.
+    ##
+    proxyUrl: ""
+
+    ## port: Name of the port the metrics will be scraped from
+    ##
+    port: http-metrics
+
+    jobLabel: jobLabel
+    selector: {}
+    #  matchLabels:
+    #    k8s-app: kube-dns
+
+    ## MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    metricRelabelings: []
+    # - action: keep
+    #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+    #   sourceLabels: [__name__]
+
+    ## RelabelConfigs to apply to samples before scraping
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+    ##
+    relabelings: []
+    # - sourceLabels: [__meta_kubernetes_pod_node_name]
+    #   separator: ;
+    #   regex: ^(.*)$
+    #   targetLabel: nodename
+    #   replacement: $1
+    #   action: replace
+
+    ## Additional labels
+    ##
+    additionalLabels: {}
+    #  foo: bar
+
+## Component scraping kubeDns. Use either this or coreDns
+##
+kubeDns:
+  enabled: false
+
+## Component scraping etcd
+##
+kubeEtcd:
+  enabled: true
+
+  ## Etcd service. If using kubeEtcd.endpoints only the port and targetPort are used
+  ##
+  service:
+    enabled: true
+    port: 2381
+    targetPort: 2381
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+
+  serviceMonitor:
+    enabled: true
+    scheme: http
+    insecureSkipVerify: false
+    serverName: ""
+    caFile: ""
+    certFile: ""
+    keyFile: ""
+
+    port: http-metrics
+
+    jobLabel: jobLabel
+
+## Component scraping kube scheduler
+##
+kubeScheduler:
+  enabled: true
+
+  ## If using kubeScheduler.endpoints only the port and targetPort are used
+  ##
+  service:
+    enabled: true
+    ## If null or unset, the value is determined dynamically based on target Kubernetes version due to change
+    ## of default port in Kubernetes 1.23.
+    ##
+    port: null
+    targetPort: null
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+    # selector:
+    #   component: kube-scheduler
+
+  serviceMonitor:
+    enabled: true
+    https: null
+    port: http-metrics
+    jobLabel: jobLabel
+
+## Component scraping kube proxy
+##
+kubeProxy:
+  enabled: true
+
+  service:
+    enabled: true
+    port: 10249
+    targetPort: 10249
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+
+  serviceMonitor:
+    enabled: true
+    port: http-metrics
+    jobLabel: jobLabel
+    https: false
+
+## Component scraping kube state metrics
+##
+kubeStateMetrics:
+  enabled: true
+
+## Configuration for kube-state-metrics subchart
+##
+kube-state-metrics:
+  namespaceOverride: ""
+  rbac:
+    create: true
+  extraArgs:
+    - --metric-labels-allowlist=pods=[*]
+  releaseLabel: true
+  prometheus:
+    monitor:
+      enabled: true
+      honorLabels: true
+  selfMonitor:
+    enabled: false
+
+## Deploy node exporter as a daemonset to all nodes
+##
+nodeExporter:
+  enabled: true
+  operatingSystems:
+    linux:
+      enabled: true
+    darwin:
+      enabled: true
+
+## Configuration for prometheus-node-exporter subchart
+##
+prometheus-node-exporter:
+  namespaceOverride: ""
+  podLabels:
+    jobLabel: node-exporter
+  releaseLabel: true
+  extraArgs:
+    - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+    - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+  service:
+    portName: http-metrics
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+  prometheus:
+    monitor:
+      enabled: true
+      jobLabel: jobLabel
+  rbac:
+    pspEnabled: false
+
+## Manages Prometheus and Alertmanager components
+##
+prometheusOperator:
+  enabled: true
+  revisionHistoryLimit: 10
+  tls:
+    enabled: true
+    # Value must match version names from https://golang.org/pkg/crypto/tls/#pkg-constants
+    tlsMinVersion: VersionTLS13
+    internalPort: 10250
+
+  admissionWebhooks:
+    ## The default timeoutSeconds is 10 and the maximum value is 30.
+    timeoutSeconds: 10
+    enabled: true
+
+    deployment:
+      enabled: false
+
+    patch:
+      enabled: true
+      image:
+        registry: registry.k8s.io
+        repository: ingress-nginx/kube-webhook-certgen
+        tag: v20221220-controller-v1.5.1-58-g787ea74b6
+        sha: ""
+        pullPolicy: IfNotPresent
+      ttlSecondsAfterFinished: 60
+
+      securityContext:
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
+
+    createSecretJob:
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+
+      # Security context for patch job container
+    patchWebhookJob:
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+
+    # Use certmanager to generate webhook certs
+    certManager:
+      enabled: false
+
+  ## Filter namespaces to look for prometheus-operator custom resources
+  ##
+  alertmanagerInstanceNamespaces: []
+  alertmanagerConfigNamespaces: []
+  prometheusInstanceNamespaces: []
+  thanosRulerInstanceNamespaces: []
+
+  networkPolicy:
+    enabled: false
+
+  ## Service account for Prometheus Operator to use.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+  ##
+  serviceAccount:
+    create: true
+    name: ""
+    automountServiceAccountToken: true
+
+  kubeletService:
+    enabled: true
+    namespace: kube-system
+
+  serviceMonitor:
+    selfMonitor: true
+
+  env:
+    GOGC: "30"
+
+  hostNetwork: false
+
+  securityContext:
+    fsGroup: 65534
+    runAsGroup: 65534
+    runAsNonRoot: true
+    runAsUser: 65534
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## Container-specific security context configuration
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  ##
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  # Enable vertical pod autoscaler support for prometheus-operator
+  verticalPodAutoscaler:
+    enabled: false
+
+  image:
+    registry: quay.io
+    repository: prometheus-operator/prometheus-operator
+    pullPolicy: IfNotPresent
+
+  prometheusConfigReloader:
+    image:
+      registry: quay.io
+      repository: prometheus-operator/prometheus-config-reloader
+    enableProbe: false
+
+  prometheusInstanceSelector: ""
+  alertmanagerInstanceSelector: ""
+  thanosRulerInstanceSelector: ""
+  secretFieldSelector: "type!=kubernetes.io/dockercfg,type!=kubernetes.io/service-account-token,type!=helm.sh/release.v1"
+
+  automountServiceAccountToken: true
+
+## Deploy a Prometheus instance
+##
+prometheus:
+  enabled: true
+  agentMode: false
+
+  ## Configure network policy for the prometheus
+  networkPolicy:
+    enabled: false
+
+    ## Flavor of the network policy to use.
+    #  Can be:
+    #  * kubernetes for networking.k8s.io/v1/NetworkPolicy
+    #  * cilium     for cilium.io/v2/CiliumNetworkPolicy
+    flavor: kubernetes
+
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: true
+
+  thanosService:
+    enabled: false
+
+  # ServiceMonitor to scrape Sidecar metrics
+  # Needs thanosService to be enabled as well
+  thanosServiceMonitor:
+    enabled: false
+
+  # Service for external access to sidecar
+  # Enabling this creates a service to expose thanos-sidecar outside the cluster.
+  thanosServiceExternal:
+    enabled: false
+
+  ## Configuration for Prometheus service
+  ##
+  service:
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+
+    ## Port for Prometheus Service to listen on
+    ##
+    port: 9090
+
+    ## To be used with a proxy extraContainer port
+    targetPort: 9090
+
+    ## Port for Prometheus Reloader to listen on
+    ##
+    reloaderWebPort: 8080
+
+    ## Port to expose on each node
+    ## Only used if service.type is 'NodePort'
+    ##
+    nodePort: 30090
+
+    ## Loadbalancer IP
+    ## Only use if service.type is "LoadBalancer"
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+
+    ## Denotes if this Service desires to route external traffic to node-local or cluster-wide endpoints
+    ##
+    externalTrafficPolicy: Cluster
+
+    ## Service type
+    ##
+    type: NodePort
+
+    ## Consider that all endpoints are considered "ready" even if the Pods themselves are not
+    ## Ref: https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
+    publishNotReadyAddresses: false
+
+    ## If you want to make sure that connections from a particular client are passed to the same Pod each time
+    ## Accepts 'ClientIP' or 'None'
+    ##
+    sessionAffinity: None
+
+    ## If you want to modify the ClientIP sessionAffinity timeout
+    ## The value must be >0 && <=86400(for 1 day) if ServiceAffinity == "ClientIP"
+    ##
+    sessionAffinityConfig:
+      clientIP:
+        timeoutSeconds: 10800
+
+  ## Configuration for creating a separate Service for each statefulset Prometheus replica
+  ##
+  servicePerReplica:
+    enabled: false
+
+  podDisruptionBudget:
+    enabled: false
+
+  # Ingress exposes thanos sidecar outside the cluster
+  thanosIngress:
+    enabled: false
+
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.plt
+    paths:
+      - /
+
+    ## TLS configuration for Prometheus Ingress
+    ## Secret must be manually created in the namespace
+    ##
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.plt
+
+  ingressPerReplica:
+    enabled: false
+
+  serviceMonitor:
+    selfMonitor: true
+
+  prometheusSpec:
+    disableCompaction: false
+    enableAdminAPI: true
+    image:
+      registry: quay.io
+      repository: prometheus/prometheus
+      tag: v2.52.0
+
+    ruleSelector:
+      matchLabels: null
+    serviceMonitorSelector:
+      matchLabels: null
+    podMonitorSelector:
+      matchLabels: null
+    probeSelector:
+      matchLabels: null
+    scrapeConfigSelector:
+      matchLabels: null
+
+    retention: 10d
+    tsdb:
+      outOfOrderTimeWindow: 0s
+    walCompression: true
+    paused: false
+    replicas: 1
+    shards: 1
+    logLevel: info
+    logFormat: logfmt
+    routePrefix: /
+    remoteWriteDashboards: false
+
+    ## SecurityContext holds pod-level security attributes and common container settings.
+    ## This defaults to non root user with uid 1000 and gid 2000.
+    ## https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md
+    ##
+    securityContext:
+      runAsGroup: 2000
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+      seccompProfile:
+        type: RuntimeDefault
+
+    portName: "http-web"
+    arbitraryFSAccessThroughSMs: false
+    overrideHonorLabels: false
+    overrideHonorTimestamps: false
+    ignoreNamespaceSelectors: false
+    queryLogFile: false
+    sampleLimit: false
+    hostNetwork: false
+
+thanosRuler:
+  enabled: false
+
+## Setting to true produces cleaner resource names, but requires a data migration because the name of the persistent volume changes. Therefore this should only be set once on initial installation.
+##
+cleanPrometheusOperatorObjectNames: false
+
+## Extra manifests to deploy as an array
+extraManifests:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: prometheus-tls
+    data:
+      tls.crt: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZuVENDQTRXZ0F3SUJBZ0lVS3JqS2tabWlLUmVSU1NUQ09DQjIzLy9xZzk4d0RRWUpLb1pJaHZjTkFRRUwKQlFBd1hqRUxNQWtHQTFVRUJoTUNRVlV4RXpBUkJnTlZCQWdNQ2xOdmJXVXRVM1JoZEdVeElUQWZCZ05WQkFvTQpHRWx1ZEdWeWJtVjBJRmRwWkdkcGRITWdVSFI1SUV4MFpERVhNQlVHQTFVRUF3d09jSEp2YldWMGFHVjFjeTV3CmJIUXdIaGNOTWpRd056RTFNVFl3TlRBeVdoY05NamN3TkRFeE1UWXdOVEF5V2pCZU1Rc3dDUVlEVlFRR0V3SkIKVlRFVE1CRUdBMVVFQ0F3S1UyOXRaUzFUZEdGMFpURWhNQjhHQTFVRUNnd1lTVzUwWlhKdVpYUWdWMmxrWjJsMApjeUJRZEhrZ1RIUmtNUmN3RlFZRFZRUUREQTV3Y205dFpYUm9aWFZ6TG5Cc2REQ0NBaUl3RFFZSktvWklodmNOCkFRRUJCUUFEZ2dJUEFEQ0NBZ29DZ2dJQkFLUExjODd4UUM0MGpIRnRKKzM2MlliSWxjcm4wUW03R1NDY0FZdk0KYnNyajc2WTFmY0ZHc0Q1VCtHRHczN2ZCN1NVb0VMaU9MZWlVakM2cTc0LzRFMzdMSUJXVDZGTGFlc2dVWWE1bwp6aDVTcytNK2FxSG5oaWV4bWEvZzZvWm51bU5ucHJCSkRMeCtaQVdjZWxKa0hkM09GNDVUcW9OUVVzc2Y2dU5YCmlGcXZmcFV0ZXlmbGducGJ0NWVzWmxsNm5DMjFVVXNVNzBpSkFNL0Znd01TcGZBNGxqWitPamFLOGE0ZTFwREcKVkx1L2NyK3ZqcjlVeWpoUWlBYnMrVWhoYlhNT1Ayc1JudWVZL3RUbzlaa3lCeENXTzhjVXRTanFYRzRCVVdjYQpsb3BPOVRUaEhGaUFkSExQQWx1MFdaSk5WWllTQlp6TFk5VFh1TmlSVzMwcndkeVlUenJkTEJza3k3SWhWTld2CnVKUDV0WmFBLzQ0ZXp3ZHFCU2lDNEM0TXRxdW03dXFOKzNJRnRFc0hpYUlQSEU4VWkwVlNJQTlpbkY2S213OHMKTTFxSllxUzZGa2hhcTdvQWlxdDhsaHBoZyt6ZjlEUGl2UkdFOWFVMHhaOWk3VjV0MzBBTEhvMnFzVzFzTnhySgpuaE9JeStrL2dLbGFnU3JxSm1DZlNPOFBiTmd5RmNHZkJEamgxcEpXbnkwQUVXVk1iMEgvMUNLbVoyK0ordFAxCmdGam5aNVRwUllDTWtxdDZQWUxpbXAxZEZ1YW1vVjBBcjJoWVpydzhlYk5mbFpSMzJ3SDdZTXZFbW9RSHU5US8KY0JPTXFJYy9KQks3VitqOXBMa25XRXUwN09CcFd2eTh3WVc3UHJCRDY2cVNOZFpEalRHMmNGZHUzcmRGdjlpMQp6ekFWQWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJROC9BdDY3NnZYMDJhcWpENTVBNk9yTjJNQzV6QWZCZ05WCkhTTUVHREFXZ0JROC9BdDY3NnZYMDJhcWpENTVBNk9yTjJNQzV6QVBCZ05WSFJNQkFmOEVCVEFEQVFIL01BMEcKQ1NxR1NJYjNEUUVCQ3dVQUE0SUNBUUI3bGRCTWpVMmR3aHltbzBlUk8rQ2QwVWNDcU4wTUUyenI0VUhtZ1pIUAovcFJwUTl4UWlQSWFpWGNYOG9scWc4aUJlb1E2ZzVkcERpdHNha1p5ZkRxaE9DOXV2Z2gweDkwUWQ3aTFEalRVCnBoeVBKV1pHT3RaN09uQml6c2Q0bVRza2h6MU02OXorZmdYSW8zZThScVRVcWhBaDVJNndPSVI2S3BXZDJQQmMKT1l5ejVsd0QxOFVQWit5SWhrN1JUajJrYm9nNjZSckVjQkZtczlkQjAxUW9hRU82U09wK2ttZHMrcEE4bExRNAo5NW1DY2NhUnNPbTdQZ2Rpbjg2THRHQVJJWUpQVmlJTDAxbmdVcHZ4VURlcml4UmJKRW9PZEw3ais5ajh1QUJMCnFTL2VEWVM2dElQTkhMalNCYjcvRktyaitCMlJUOTZsc0ZRZ1ArSXFpYjY4Rk9GWmJqQXFYYmd3ck4zamVYcXYKMkw5RHNCTm5Tb2FkcWxIaGFQeVdpZlVsc0h4M1UxWGt6TnRlSFZjSnFIL3ZvUWFZOVBNc28yY0VJbTI5VU9VUApRTUVGNlRqclVFY051MUp0UjNpbHg2eWlUWTR4NmJ4U0x1akdFUTR3QXFEaVdmZGNIa0Ztek02aGtzUTYrQks0ClJ2TUxSZGJpN3FSUGZIb2FqQmZtMVA4M1hodG9PL2tpOXRFdzFJUlFOdWFxcXNDZU1obU5vUmtxZmZONSsrY2MKVG56ZUZDOFRUZzhuV3djTVNFQTUxU05xSDBjWEpaR2U3dlMyaTUzSTFMMUpzRnBJaHRDYjBtYmhmRGtDc000eApqQU5JWkZYTFdPdHlCMG82Rkg2ZEtON05iQ09kcG5vakVNRGZsMm1qWXh5RnVxVC9ML09IY2Fzd1JESmxDa3ZqCjVnPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo="
+      tls.key: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUpRUUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQ1Nzd2dna25BZ0VBQW9JQ0FRQ2p5M1BPOFVBdU5JeHgKYlNmdCt0bUd5SlhLNTlFSnV4a2duQUdMekc3SzQrK21OWDNCUnJBK1UvaGc4Tiszd2UwbEtCQzRqaTNvbEl3dQpxdStQK0JOK3l5QVZrK2hTMm5ySUZHR3VhTTRlVXJQalBtcWg1NFluc1ptdjRPcUdaN3BqWjZhd1NReThmbVFGCm5IcFNaQjNkemhlT1U2cURVRkxMSCtyalY0aGFyMzZWTFhzbjVZSjZXN2VYckdaWmVwd3R0VkZMRk85SWlRRFAKeFlNREVxWHdPSlkyZmpvMml2R3VIdGFReGxTN3YzSy9yNDYvVk1vNFVJZ0c3UGxJWVcxekRqOXJFWjdubVA3VQo2UFdaTWdjUWxqdkhGTFVvNmx4dUFWRm5HcGFLVHZVMDRSeFlnSFJ5endKYnRGbVNUVldXRWdXY3kyUFUxN2pZCmtWdDlLOEhjbUU4NjNTd2JKTXV5SVZUVnI3aVQrYldXZ1ArT0hzOEhhZ1VvZ3VBdURMYXJwdTdxamZ0eUJiUkwKQjRtaUR4eFBGSXRGVWlBUFlweGVpcHNQTEROYWlXS2t1aFpJV3F1NkFJcXJmSllhWVlQczMvUXo0cjBSaFBXbApOTVdmWXUxZWJkOUFDeDZOcXJGdGJEY2F5WjRUaU12cFA0Q3BXb0VxNmlaZ24wanZEMnpZTWhYQm53UTQ0ZGFTClZwOHRBQkZsVEc5Qi85UWlwbWR2aWZyVDlZQlk1MmVVNlVXQWpKS3JlajJDNHBxZFhSYm1wcUZkQUs5b1dHYTgKUEhtelg1V1VkOXNCKzJETHhKcUVCN3ZVUDNBVGpLaUhQeVFTdTFmby9hUzVKMWhMdE96Z2FWcjh2TUdGdXo2dwpRK3Vxa2pYV1E0MHh0bkJYYnQ2M1JiL1l0Yzh3RlFJREFRQUJBb0lDQUJ1UnlDbGg5QktTNTd6RHliL0Z4RTFxCmY4UUtadVlEWndSVkhmR0E5SGtVQ3Fkb1E0Vi90M1NXUDYxWmZkNTVOc2hWU1JNM1kwVE5sQmJhMEwzajNLd3YKMW5PclZLUjFmOHNqbXhsM0xKSndDelZKc1RzVk5FQ0VKVUUwVTJWU0drNVhDUGlOSXlhckEzenFUTENIaDN0cApFQS8xeHpLWkY0WjNGZHMwUlpBMkQ5RmVPV2VLdXY2TFo0aVJEUjBzaFJNd2ZNRnRnYVVzNGtVV2txbTJ2dFdEClFNMWxTN2tZZy90eDExM0E5RXd4dWtmSGJmaUlkZzBxaU9yWmdsQUxqaGVhbzFRTFFEcnRScDlob3MwcFhZVU8KTkh1YTRhOUVXMUJzeWwzWFhOVmsydU1Pck8yOG1WMGx1TmprcjFydngyTWVIM0czemxMcUNJUHpXM25qSHBzVQozS1RrZytHNFVJQ0UxK3Vnd1hHcTRyUzk5RW9OSEtwL2hycXU1VUozZ1Q5TVcrRWJBUTlpY3NZSkhzSWVqWkh4Cm9CRlhibWUzaVFjY0U3RElPYVZOcVhFNzE5R01vWDFrTzljd2NHZjNXdEd5Z3dhdlZaa0VmSWNZeHFBZ0ZWTW8KNXFxbHNSZi9yWXpydEZWMFhndy9PWUluR21aYjZUUE52S3d4dHU4V3N3ZysxeDJQMW1qR1pMWW95bVoxV0NBQQpBMWFNUkxMa2FuYzZzUFpyRXJyczBVd3Y2Rm9EdXloTWdFdHQ3elgyemxkNk0wVkRLVk1IM29uZ0NUaFE1ZVMxCmQ2eTN4MXBDR21yci80MWQzRHkxemtTdEJ4bWlFaDQxVmsxZ0cwdmtIU3lYVElrVmRwQnZvampTMUNqcDJubVEKRGs1SktYS0ZRbUtnaytkMjhqcTFBb0lCQVFETmVvbFd4QUZndGVlOVhZclhBS0xtaVBLcWU3QzJVQ1RaQ0h5ZApWS3VMdXBMdi8yUXJ0ZHpidS81VVRLbGx4ODR5YjAzRDc5R1IvMlp2UUFrY3BGclpYRU13b3hUZ0daTE5OMXAyCklvc3IvZmVhT2pCcDZrY3locUZSQWJyeS9ORkE1djg3OXc3eXFUZW5INk9QUXYxdk8zQTFveFRnNUJHRTZZdi8KaFRuU3FJL1FpdXZLNngyUG9GeUFtVE1DVmF5aG9TWmIzTXQ5WnZnYWZsbGRJUDZSZFBkWEVCOXU2T3FXT1FnNQpRNG9sZFM0VkRMUUV6WnRENGNUWGY3bmU2eFBqQVFoclZ1ZDJ4N1BGM2s2MmNoamF0UDlDaDROVUh5bFNEbkpiCjVablBKTkZzcThLRlBRVDB4OVJjdmZBM0xiTlErWlF3OW1WdmJLbFJyVlJJTlg1YkFvSUJBUURNRVROZHhwNWUKT1JmQmRVWWttdFJ6M3VHQitGZWh3VEtJeWg3OWtOeTlTTFZmaUdGOHA1bjB3SG1LQnRpbXZQSzE3QmRRamtBNgoxc2x2TzBHUStkVkI2WDJFc1BoS0tOWjM5Nk5EOWRBT1R0RDM2enRTMllNa3AvbkRweGdtWXB3ZHJoM0NBSEc2Cll1L1JMVUR6OU5JU3AzeFh6bDVUUFNxdnN1azVJNE1xR3ZDdStnOERMN2c2L2o2ZXRSSHNmL3BMV0hUL2NaZksKTnYwaEZtTW5ySnd2ZHYxdmtoZ3NYMStSTFVHSy9rbEVTN3N6cEsrRXN1VUdqdjkxRHBNV0FCT3BQZWE3SWd5KwphT1VLbVFGUVBIYWZDYTdhSjJUdUNlN2RCNnlZZy93REl5R0V5dUcwUTk5NjBQeFNqeTUySnZJNUcxTG1KQnZZCjhsN1U4R0RhMGpaUEFvSUJBRks4MVpKWGFFcWQxSXRlb0NwRXVsTmpyM3JRUlc2VHhOS1RaVUlndHRhVHNOanMKbUZRMWJaSVpGNmF3RzhHOCs1MDVUakhvWGhXUXBwbURTbWY3RWczVjVjUXUxcGdLRkIrSCsyZjRMdHZ1N29WdQppdElMSU5JS2ZlaFZid2Fxb0VPbS8vMFFWVGVHeGI4SXNWNWRWaGswOE5EWU11Ny9Sc0tqRzlrdXR3TEpGdWVkCkdLYmpsMHFmQXNCUmI4V3Y0OHhOVEZuUEJTMGdpaVI0M2RqdkVUSld5OFdGMjNKWVhTVlNINnFYTklneXIvU1AKNGVqUk5ZVFc0dUQzTUV1L2tvbGtnQlJnc09FV05xQWxETUxRSEl2c042QjlXbmREK09wdW9NTzZKdjNPMEhrVwpqRVFFTnZ1dGZ5ZzgzdjRJNjl4ZU1ycW9iRjI2Zms5Q0lON1drMk1DZ2dFQWVXWlNOSnVRWTJWN3FHOW9CeWJFCjlSbkc5bGNUYXZ0UVlPZzlmNFBLamlEUEpjSXduTVBvWng2S0wzN2JMSGFEdlk1eVlFNEFFQUR2WE9qWG5MUEUKRnE0ZEtlOU9CbkE5QnFtZnl6SlZUKzI3aTRHNWpSUXhYSUZCcVEraTRsTVBwT2lNYzNsb0x3WGt2WUE2ZitkSgpnaWQ1WlpNenNqbFZSNmtiN2c0ZVhkSWhGVGRWN3dOWWlsL3VTT1JYZ1dheE5GbXZZTGZuSVRtTlpUMjRSMFg4CnRKQUpQWEtnUnVXR0tRdlBUaXp3MFZ4c1JkRFhTZzVUQ1kvUWtZYldJZVJ4emVFeGZtcEhRbytNa3IxcmRweEIKeFdNeFRqN1pZSE13VXZYWnkvSFkzdFRyZitCaVhhZHpMOUZjQ3BGN2huYXM2eVJDTVArU1FZSU93SWN3VjMxdgpLUUtDQVFBZzkrNHpvRmhzcm90N3V3VERIR2h3RmptQktISmtLeDNsSmQrVk95Mmp6WjNFTkJFc2RoOEtXOENZCjZEN1hwaTZQOGJYVS9DOG1qZ21saTJiZXVhNElpM1NiV0ZpYzhORGFrb1JJRngwdlVjVTRWVFVpdzlvdW9nTnQKKzlBZHBaL2dlVCtZSFh5Q1IySHFFMTZWM0ZDQ2ZycG1IeWVIYUJTOWQ4ZWVQQjlDb2V2cnlrRUlqMTZqZWdGbApwenlDaHh0bVdRbmRtUDg5Y2ptZXRsMGQyRHp3cytPUUprbHVuM3gwK3JZQlY2bU5KNnNiVG54TTlMemF3VnlNCnNCMHl1UEs5S3ZZaFp2ckJqS3V5Sk50ZlkzYmFua0JYYW1xdUZBTFF2YTZPUHRaa2hVeUd4TEdNSk5NM1RMeGgKWlN0aUJ3YkNGUzJaTlVYSWUzNmkzWElxalgwTgotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
+    type: kubernetes.io/tls
