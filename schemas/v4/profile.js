@@ -60,7 +60,9 @@ const K3dConfig = Type.Object({
 })
 
 const FeatureConfig = Type.Object({
-  features: Type.Record(Type.String(). Type.Object())
+  features: Type.Record(Type.String(), Type.Object({
+    enable: Type.Boolean()
+  }))
 })
 
 const LogLevelConfig = Type.Object({
