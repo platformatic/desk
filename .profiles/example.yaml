@@ -23,6 +23,11 @@ dependencies:
 
 # Define what Platformatic applications to deploy and where they are sourced from
 platformatic:
+  imagePullSecret:
+    repo: ghcr.io
+    user: "{{ PULL_SECRET_USER }}"
+    token: "{{PULL_SECRET_TOKEN}}"
+
   icc:
     image:
       tag: "release"
