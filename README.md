@@ -1,6 +1,6 @@
 # desk
 
-A local tool for deploying local Kubernetes clusters that are
+A tool for deploying local Kubernetes clusters that are
 Platformatic-ready.
 
 ## Usage
@@ -22,10 +22,13 @@ desk cluster down --profile <name>
 Get status:
 
 ```sh
-desk status --profile <name>
+desk cluster status --profile <name>
 ```
 
 ### Profile
+
+> [!WARNING]
+> Not implemented yet
 
 Create a new profile using the wizard:
 
@@ -40,6 +43,11 @@ desk profile cache <profile-name>
 ```
 
 ### Deploy
+
+> [!WARNING]
+> Not implemented yet
+
+Simplify deployment of wattpro applications into local cluster
 
 Deploy an existing image into Kubernetes:
 
