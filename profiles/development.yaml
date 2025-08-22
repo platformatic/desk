@@ -1,0 +1,25 @@
+version: 4
+
+cluster:
+  k3d:
+    nodes: 1
+
+dependencies:
+  prometheus-community/prometheus-adapter:
+    plt_defaults: true
+  prometheus-community/kube-prometheus-stack:
+    plt_defaults: true
+  bitnamicharts/postgresql:
+    plt_defaults: true
+  bitnamicharts/valkey:
+    plt_defaults: true
+
+platformatic:
+  icc:
+    image:
+      tag: "release"
+      repository: "ghcr.io/platformatic/plt-icc-3"
+  machinst:
+    hotReload: true
+    local:
+      path: "/home/yeet/u/mzugm/Code/machinist-3"
