@@ -13,6 +13,8 @@ dependencies:
     plt_defaults: true
   bitnamicharts/valkey:
     plt_defaults: true
+  local/traefik:
+    plt_defaults: false
 
 platformatic:
   skip: true

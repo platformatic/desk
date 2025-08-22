@@ -1,0 +1,15 @@
+# Traefik is handled through ingressroutes.yaml
+# This is just main gateway
+ingress:
+  hosts:
+    - host: icc.plt
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: icc
+            port: 80
+  tls:
+    - secretName: icc-tls
+      hosts:
+        - icc.plt

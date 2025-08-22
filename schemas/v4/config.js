@@ -12,7 +12,8 @@ const ChartSource = Type.Union([ChartRepo, ChartDirect])
 
 const Chart = Type.Object({
   releaseName: Type.String(),
-  version: Type.String()
+  version: Type.Optional(Type.String()),
+  namespace: Type.Optional(Type.String())
 })
 
 const K3dRegistry = Type.Object({

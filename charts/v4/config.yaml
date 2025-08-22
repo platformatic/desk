@@ -47,6 +47,11 @@ dependencies:
     releaseName: 'envoy-gateway'
     version: '1.4.2'
 
+  local/traefik:
+    location: './local/traefik'
+    releaseName: 'local-traefik'
+    namespace: 'platformatic'
+
 databaseServer: ""
 
 valkey:
