@@ -3,7 +3,24 @@
 A tool for deploying local Kubernetes clusters that are
 Platformatic-ready.
 
-## Usage
+## Setup
+
+1. Clone repository
+    ```sh
+    git clone git@github.com:platformatic/desk.git
+    ```
+2. Install dependencies
+    ```sh
+    npm install
+    ```
+    * The `preinstall` script checks for system dependencies and will fail if
+      any are missing. The output will be on screen.
+3. Add Github PAT to _.env_
+    ```sh
+    cp .env.sample .env
+    ```
+
+## CLI
 
 ### Cluster
 
@@ -73,3 +90,15 @@ Use `DEBUG=plt-desk*` to view debug statements. The output can be narrowed down
 to:
 
 * cluster specific: `DEBUG=plt-desk:cluster`
+
+## Examples
+
+Test out the installation script from ICC:
+
+```sh
+desk cluster up --profile light
+```
+
+After this command completes, the install script command will be output. The
+path is relative to the ICC directory so copy and paste the command and run from
+the ICC directory.

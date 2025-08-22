@@ -8,6 +8,7 @@
     "desk": "cli.js"
   },
   "scripts": {
+    "preinstall": "node scripts/preinstall.js",
     "lint": "eslint",
     "test": "node --test tests/"
   },
