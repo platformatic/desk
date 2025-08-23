@@ -1,3 +1,9 @@
+# This setup creates special images for icc and machinist which have volume mounts
+# mapped to local repositories. Essentially the same as running `cib dev`
+#
+# NOT FULLY IMPLEMENTED YET
+
+# Schema version
 version: 4
 
 cluster:
@@ -13,13 +19,15 @@ dependencies:
     plt_defaults: true
   bitnamicharts/valkey:
     plt_defaults: true
+  local/traefik:
+    plt_defaults: false
 
 platformatic:
   icc:
-    image:
-      tag: "release"
-      repository: "ghcr.io/platformatic/plt-icc-3"
+    hotReload: true
+    local:
+      path: "{{ ICC_REPO }}"
   machinst:
     hotReload: true
     local:
-      path: "/home/yeet/u/mzugm/Code/machinist-3"
+      path: "{{ MACHINIST_REPO }}"

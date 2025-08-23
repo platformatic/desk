@@ -6,13 +6,14 @@ const REQUIRED_SOFTWARE = [
   'k3d',
   'git',
   'docker',
-  'pnpm'
+  'pnpm',
+  'psql'
 ]
 
 async function hasRequiredSoftware () {
   const checkRequired = await Promise.allSettled(REQUIRED_SOFTWARE.map(async (app) => {
     try {
-      const output = await spawn('which', [app])
+      await spawn('which', [app])
       return app
     } catch {
       const err = new Error('Missing software')

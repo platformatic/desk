@@ -3,6 +3,18 @@
 A tool for deploying local Kubernetes clusters that are
 Platformatic-ready.
 
+Contents:
+
+* [Setup](#setup)
+* [Profiles](#profiles)
+* [CLI](#cli)
+    * [`cluster`](#cluster)
+    * [`profile`](#profile)
+    * [`deploy`](#deploy)
+* [Troubleshooting](#troubleshooting)
+* [Examples](#examples)
+
+
 ## Setup
 
 1. Clone repository
@@ -20,9 +32,14 @@ Platformatic-ready.
     cp .env.sample .env
     ```
 
+## Profiles
+
+Profiles are a simpler way to share a particular cluster configuration. Full
+documentation is available in [profiles/README.md]().
+
 ## CLI
 
-### Cluster
+### `cluster`
 
 Start up a cluster:
 
@@ -42,7 +59,7 @@ Get status:
 desk cluster status --profile <name>
 ```
 
-### Profile
+### `profile`
 
 > [!WARNING]
 > Not implemented yet
@@ -59,7 +76,7 @@ Cache a profile for offline use:
 desk profile cache <profile-name>
 ```
 
-### Deploy
+### `deploy`
 
 > [!WARNING]
 > Not implemented yet

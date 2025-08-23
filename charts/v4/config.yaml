@@ -20,7 +20,8 @@ dependencies:
   platformatic/helm:
     location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
-    version: '4.0.0.alpha.1'
+    version: '4.0.0-alpha.5'
+    namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:
     repo: 'https://prometheus-community.github.io/helm-charts'
@@ -51,14 +52,6 @@ dependencies:
     location: './local/traefik'
     releaseName: 'local-traefik'
     namespace: 'platformatic'
-
-databaseServer: ""
-
-valkey:
-  - name: applications
-    address: ""
-  - name: icc
-    address: ""
 
 apps:
   - name: icc

@@ -32,11 +32,6 @@ const ClusterConfig = Type.Object({
   k3d: K3dConfig,
 })
 
-const ValkeyDatabase = Type.Object({
-  name: Type.String(),
-  address: Type.String()
-})
-
 const App = Type.Object({
   name: Type.String(),
   url: Type.String(),
@@ -46,8 +41,6 @@ const App = Type.Object({
 export const ConfigSchemaV4 = Type.Object({
   cluster: ClusterConfig,
   dependencies: Type.Record(Type.String(), Type.Intersect([Chart, ChartSource])),
-  databaseServer: Type.Any(),
-  valkey: Type.Array(ValkeyDatabase),
   apps: Type.Array(App)
 })
 
