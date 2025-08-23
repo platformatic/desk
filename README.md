@@ -35,7 +35,7 @@ Contents:
 ## Profiles
 
 Profiles are a simpler way to share a particular cluster configuration. Full
-documentation is available in [profiles/README.md]().
+documentation is available in [profiles/README.md](profiles/README.md).
 
 ## CLI
 
