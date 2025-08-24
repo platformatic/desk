@@ -11,6 +11,9 @@ cluster:
       address: "k3d-plt-registry:5000"
       # Relative to charts version path
       configPath: "k3d/registry.yaml"
+    gateway:
+      enable: true
+      name: 'traefik'
 
 # Define which charts are used
 # Each chart should have a folder path with the following files:
