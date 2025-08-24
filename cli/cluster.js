@@ -20,10 +20,15 @@ export default async function cli (argv) {
   const [cmd] = args._
 
   const context = await loadContext(args.profile)
-  debug.extend('cluster')(context)
+  debug.extend('cluster')(context.cluster)
 
   if (cmd === 'up') {
     await startCluster(context.cluster, { context })
+    if (context.cluster.provider.config.gateway.enable) {
+      const { checkResources } = await import(`../lib/cluster/${context.cluster.provider.config.gateway.name}.js`)
+      await checkResources({ context })
+    }
+
     if (Object.keys(context.dependencies || {}).length > 0) {
       await installInfra(context.dependencies, { context })
     }

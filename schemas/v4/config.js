@@ -21,11 +21,17 @@ const K3dRegistry = Type.Object({
   configPath: Type.String()
 })
 
+const GatewaySchema = Type.Object({
+  name: Type.String(),
+  enable: Type.Boolean({ default: true })
+})
+
 const K3dConfig = Type.Object({
   ports: Type.Array(Type.Number(), { default: [443] }),
   args: Type.Array(Type.String(), { default: [] }),
   registry: Type.Optional(K3dRegistry),
-  nodes: Type.Number({ default: 1 })
+  nodes: Type.Number({ default: 1 }),
+  gateway: Type.Optional(GatewaySchema)
 })
 
 const ClusterConfig = Type.Object({
