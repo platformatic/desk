@@ -1,0 +1,9 @@
+services:
+  icc:
+    database_url: "{{ POSTGRES_CONNECTION_STRING }}"
+    valkey:
+      apps_url: "{{ VALKEY_APPS_CONNECTION_STRING }}"
+      icc_url: "{{ VALKEY_ICC_CONNECTION_STRING }}"
+    prometheus:
+      url: "{{ PROMETHEUS_URL }}"
+    public_url: "{{ PUBLIC_URL }}"

@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import minimist from 'minimist'
 import { loadContext } from '../lib/context.js'
 import { startCluster, stopCluster, getClusterStatus } from '../lib/cluster/index.js'
@@ -37,8 +38,12 @@ export default async function cli (argv) {
 
     if (!context.platformatic.skip) {
       const infra = await platformatic.createChartConfig(context.platformatic, { context })
-      const [output] = await installInfra(infra, { context })
-      debug({ output, infra }, 'what is happening')
+      await installInfra(infra, { context })
+
+      // HACKS The problem is ownership of the sql
+      const { postgres } = await getClusterStatus({ context })
+      await psql.execute(postgres.connectionString, join(context.chartDir, 'platformatic/helm', 'docker-postgres-init.sql'))
+      /*
       if (output && output.databases && output.databases.length > 0) {
         const createDbSql = output.databases.map(name => `CREATE DATABASE ${name};`).join('\n')
 
@@ -48,6 +53,7 @@ export default async function cli (argv) {
 
         await psql.execute(postgres.connectionString, scriptPath)
       }
+      */
     }
 
     if (context.platformatic.skip) {

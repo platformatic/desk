@@ -1,0 +1,3 @@
+imagePaths:
+  - repository: ['image', 'repository']
+    tag: ['image', 'tag']

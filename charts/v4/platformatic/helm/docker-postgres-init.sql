@@ -1,0 +1,10 @@
+CREATE DATABASE user_manager;
+CREATE DATABASE activities;
+CREATE DATABASE control_plane;
+CREATE DATABASE cold_storage;
+CREATE DATABASE risk_cold_storage;
+CREATE DATABASE cron;
+CREATE DATABASE compliance;
+CREATE DATABASE scaler;
+CREATE DATABASE trafficante;
+CREATE DATABASE cluster_manager;
