@@ -1,0 +1,15 @@
+imagePaths:
+  - registry: ['prometheusOperator', 'admissionWebhooks', 'patch', 'image', 'registry']
+    repository: ['prometheusOperator', 'admissionWebhooks', 'patch', 'image', 'repository']
+    tag: ['prometheusOperator', 'admissionWebhooks', 'patch', 'image', 'tag']
+  - registry: ['prometheusOperator', 'image', 'registry']
+    repository: ['prometheusOperator', 'image', 'repository']
+    tag: ['prometheusOperator', 'image', 'tag']
+    useAppVersion: true
+  - registry: ['prometheusOperator', 'prometheusConfigReloader', 'image', 'registry']
+    repository: ['prometheusOperator', 'prometheusConfigReloader', 'image', 'repository']
+    tag: ['prometheusOperator', 'prometheusConfigReloader', 'image', 'tag']
+    useAppVersion: true
+  - registry: ['prometheus', 'prometheusSpec', 'image', 'registry']
+    repository: ['prometheus', 'prometheusSpec', 'image', 'repository']
+    tag: ['prometheus', 'prometheusSpec', 'image', 'tag']

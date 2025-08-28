@@ -7,31 +7,25 @@ const InfraComponentSchema = Type.Object({
 })
 
 // Schema for platformatic service configuration with image
-const PlatformaticServiceWithImageSchema = Type.Object({
+const PlatformaticFromBranch = Type.Object({
   image: Type.Object({
     tag: Type.String(),
     repository: Type.String()
   })
-}, {
 })
 
 // Schema for platformatic service configuration with local
-const PlatformaticServiceWithLocalSchema = Type.Object({
-  hotReload: Type.Optional(Type.Boolean()),
-  local: Type.Object({
-    path: Type.String()
-  })
-}, {
+const PlatformaticLocalRepo = Type.Object({
+  path: Type.String()
 })
 
 const PlatformaticSkipSchema = Type.Object({
   skip: Type.Boolean()
-}, {
 })
 
-const PlatformaticServiceSchema = Type.Union([
-  PlatformaticServiceWithImageSchema,
-  PlatformaticServiceWithLocalSchema
+const PlatformaticServiceSchema = Type.Intersect([
+  PlatformaticFromBranch,
+  PlatformaticLocalRepo
 ])
 
 const K3dRegistry = Type.Object({
@@ -53,53 +47,37 @@ const K3dSchema = Type.Object({
   gateway: Type.Optional(GatewaySchema)
 })
 
-const FeatureSchema = Type.Object({
-  features: Type.Optional(Type.Record(Type.String(), Type.Object({
-    enable: Type.Boolean()
-  })))
+const OverridesSchema = Type.Object({
+  overrides: Type.Object({
+    env: Type.Optional(Type.Record(Type.String(), Type.String())),
+    secrets: Type.Optional(Type.Record(Type.String(), Type.String()))
+  })
 })
 
-const LogLevelSchema = Type.Object({
-  log_level: Type.Union([
-    Type.Literal('debug'),
-    Type.Literal('info'),
-    Type.Literal('warn'),
-    Type.Literal('error')
-  ])
-})
-
-const IccSpecificSchema = Type.Object({
-  login_methods: Type.Optional(Type.Record(Type.String(), Type.Object({ enable: Type.Boolean() }))),
-  secrets: Type.Optional(Type.Record(Type.String(), Type.String()))
-})
-
-const ImagePullSecretSchema = Type.Object({
-  repo: Type.Optional(Type.String()),
-  user: Type.String(),
-  token: Type.String()
+const GithubSchema = Type.Object({
+  registry: Type.Optional(Type.String()),
+  imagePullSecret: Type.String(),
+  username: Type.String()
 })
 
 const PlatformaticHelmSchema = Type.Object({
-  imagePullSecret: Type.Optional(ImagePullSecretSchema),
+  github: GithubSchema,
 
-  services: Type.Object({
+  projects: Type.Object({
     icc: Type.Intersect([
-      FeatureSchema,
-      LogLevelSchema,
-      IccSpecificSchema,
+      OverridesSchema,
       PlatformaticServiceSchema
     ]),
 
     machinist: Type.Intersect([
-      FeatureSchema,
-      LogLevelSchema,
+      OverridesSchema,
       PlatformaticServiceSchema
     ])
   })
 })
 
-export const ProfileSchemaV4 = Type.Object({
-  version: Type.Literal(4),
+export const ProfileSchemaV3 = Type.Object({
+  version: Type.Literal(3),
   cluster: Type.Optional(Type.Object({
     k3d: K3dSchema
   })),
@@ -112,4 +90,4 @@ export const ProfileSchemaV4 = Type.Object({
   additionalProperties: false
 })
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 3

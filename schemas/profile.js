@@ -1,12 +1,14 @@
 import { Value } from '@sinclair/typebox/value'
 import { ProfileSchemaV4, SCHEMA_VERSION as V4_VERSION } from './v4/profile.js'
+import { ProfileSchemaV3, SCHEMA_VERSION as V3_VERSION } from './v3/profile.js'
 
 const SCHEMAS = new Map([
-  [V4_VERSION, { schema: ProfileSchemaV4, version: V4_VERSION }]
+  [V4_VERSION, { schema: ProfileSchemaV4, version: V4_VERSION }],
+  [V3_VERSION, { schema: ProfileSchemaV3, version: V3_VERSION }]
 ])
 
 export const LATEST_VERSION = V4_VERSION
-export const SUPPORTED_VERSIONS = [V4_VERSION]
+export const SUPPORTED_VERSIONS = [V4_VERSION, V3_VERSION]
 
 export function getSchema (version) {
   const schemaInfo = SCHEMAS.get(version)

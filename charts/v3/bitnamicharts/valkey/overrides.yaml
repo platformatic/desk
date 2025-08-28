@@ -1,0 +1,24 @@
+global:
+  security:
+    allowInsecureImages: true
+
+primary:
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1024Mi"
+      cpu: "500m"
+  service:
+    type: "NodePort"
+
+architecture: standalone
+
+auth:
+  enabled: true
+  username: default
+  password: default
+
+sentinel:
+  enabled: false

@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: apps
+  labels:
+    {{- include "local-traefik.labels" . | nindent 4 }}
+    app.kubernetes.io/name: 'wattpro'
+spec:
+  routes: []
+  tls:
+    secretName: gw-tls
+    domains:
+      - main: gw.plt
+        sans:
+          - svcs.gw.plt
+          - svcs-preview.gw.plt
+

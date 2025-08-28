@@ -45,10 +45,10 @@ const App = Type.Object({
   defaultBranch: Type.String()
 })
 
-export const ConfigSchemaV4 = Type.Object({
+export const ConfigSchemaV3 = Type.Object({
   cluster: ClusterConfig,
   dependencies: Type.Record(Type.String(), Type.Intersect([Chart, ChartSource])),
   apps: Type.Array(App)
 })
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 3
