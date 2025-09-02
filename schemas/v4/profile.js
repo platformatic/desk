@@ -99,9 +99,10 @@ const PlatformaticHelmSchema = Type.Object({
 })
 
 export const ProfileSchemaV4 = Type.Object({
-  version: Type.Literal(4),
+  version: Type.Union([Type.Literal(4), Type.String()]),
+  description: Type.Optional(Type.String()),
   cluster: Type.Optional(Type.Object({
-    namespaces: Type.Optional(Type.Array(Type.String())),
+    namespaces: Type.Optional(Type.Array(Type.String(), { default: [] })),
     k3d: K3dSchema
   })),
   dependencies: Type.Record(Type.String(), InfraComponentSchema),

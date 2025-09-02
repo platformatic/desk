@@ -1,5 +1,8 @@
 # Define the cluster provider and any necessary configuration
 cluster:
+  namespaces:
+    - platformatic
+
   k3d:
     nodes: 1
     ports:
@@ -24,7 +27,7 @@ dependencies:
   platformatic/helm:
     location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
-    version: '3.4.2-alpha.1'
+    version: '3.4.2'
     namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:

@@ -27,6 +27,7 @@
     "minimist": "^1.2.8",
     "nano-spawn": "^1.0.2",
     "picocolors": "^1.1.1",
+    "semver": "^7.7.2",
     "yaml": "^2.5.0"
   },
   "devDependencies": {

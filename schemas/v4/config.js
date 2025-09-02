@@ -36,7 +36,7 @@ const K3dConfig = Type.Object({
 })
 
 const ClusterConfig = Type.Object({
-  namespaces: Type.Array(Type.String()),
+  namespaces: Type.Optional(Type.Array(Type.String(), { default: [] })),
   k3d: K3dConfig,
 })
 

@@ -1,9 +1,9 @@
-# This profile creates a cluster with all the dependencies needed for running Platformatic
-# but does not install icc or machinist. This is useful for testing the icc install
-# scripts.
-
-# Schema version
 version: 4
+
+description: |
+  This profile creates a cluster with all the dependencies needed for running Platformatic
+  but does not install icc or machinist. This is useful for testing the icc install
+  scripts.
 
 cluster:
   k3d:

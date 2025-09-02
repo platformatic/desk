@@ -1,8 +1,8 @@
-# This is a configuration profile which uses prebuilt images. This is most like
-# running `cib demo`.
-
-# Configuration version
 version: 4
+
+description: |
+  This is a configuration profile which uses prebuilt images. This is most like
+  running `cib demo`. This profile will be updated to match the latest changes.
 
 # Define the cluster provider and any relevant details
 # When the cluster is created, it will be named after this file: plt-example
