@@ -1,3 +1,10 @@
+podManagerServiceAccount:
+  bindToNamespaces: [{{ PLT_NAMESPACES }}]
+
+wattpro:
+  monitor:
+    namespaces: [{{ PLT_NAMESPACES }}]
+
 services:
   icc:
     database_url: "{{ POSTGRES_CONNECTION_STRING }}"

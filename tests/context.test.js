@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import yaml from 'js-yaml'
+import yaml from 'yaml'
 import { loadContext } from '../lib/context.js'
 
 test('loadContext should correctly load and combine profile and base configurations', async (t) => {
