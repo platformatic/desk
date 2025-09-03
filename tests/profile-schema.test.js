@@ -164,7 +164,7 @@ test('parse a full v4 profile', async t => {
             }
           },
           secrets: {
-            icc_session: "aaaaaaaaaaaaaaaaaaaaaaaa"
+            icc_session: 'aaaaaaaaaaaaaaaaaaaaaaaa'
           }
         },
 

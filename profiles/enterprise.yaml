@@ -1,8 +1,7 @@
 version: 4
 
 description: |
-  This is a configuration profile which uses prebuilt images. This is most like
-  running `cib demo`. This profile will be updated to match the latest changes.
+  This configuration installs the Enterprise versions of ICC and Machinist.
 
 # Define the cluster provider and any relevant details
 # When the cluster is created, it will be named after this file: plt-example

@@ -43,7 +43,7 @@ export default async function cli (argv) {
     await registry.buildFromDirectory(directory, appImage)
   }
 
-  let envVars = {}
+  const envVars = {}
   if (args.envfile) {
     dotenv.config({
       path: [resolve(args.envfile)],

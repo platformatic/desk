@@ -40,12 +40,6 @@ const ClusterConfig = Type.Object({
   k3d: K3dConfig,
 })
 
-const App = Type.Object({
-  name: Type.String(),
-  url: Type.String(),
-  defaultBranch: Type.String()
-})
-
 export const ConfigSchemaV4 = Type.Object({
   cluster: ClusterConfig,
   dependencies: Type.Record(Type.String(), Type.Intersect([Chart, ChartSource]))

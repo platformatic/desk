@@ -5,7 +5,6 @@ import { startCluster, stopCluster, getClusterStatus } from '../lib/cluster/inde
 import { installInfra } from '../lib/infra.js'
 import { debug, info, warn, error } from '../lib/utils.js'
 import * as platformatic from '../lib/platformatic.js'
-import { addToRun } from '../lib/run-directory.js'
 import * as psql from '../lib/psql.js'
 import * as kubectl from '../lib/kubectl.js'
 
@@ -43,17 +42,6 @@ export default async function cli (argv) {
       // HACKS The problem is ownership of the sql
       const { postgres } = await getClusterStatus({ context })
       await psql.execute(postgres.connectionString, join(context.chartDir, 'platformatic/helm', 'docker-postgres-init.sql'))
-      /*
-      if (output && output.databases && output.databases.length > 0) {
-        const createDbSql = output.databases.map(name => `CREATE DATABASE ${name};`).join('\n')
-
-        const scriptPath = await addToRun(context.runDir, 'platformatic/helm/create-db.sql', createDbSql)
-        const { postgres } = await getClusterStatus({ context })
-        debug({ scriptPath, postgres })
-
-        await psql.execute(postgres.connectionString, scriptPath)
-      }
-      */
     }
 
     if (context.platformatic.skip) {

@@ -36,11 +36,11 @@ export default async function cli (argv) {
 
       info('Available profiles:\n')
 
-      let output = []
+      const output = []
       for (const file of yamlFiles) {
         const profilePath = join(profilesDir, file)
         const profileData = await loadYamlFile(profilePath)
-        
+
         const profileName = file.replace('.yaml', '')
         const expectedClusterName = clusterName(profileName)
         const isRunning = runningClusters.includes(expectedClusterName)
