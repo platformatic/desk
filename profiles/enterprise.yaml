@@ -34,7 +34,7 @@ dependencies:
 # This matches the v4 Helm chart values.yaml
 platformatic:
   imagePullSecret:
-    repo: ghcr.io
+    registry: ghcr.io
     user: "{{ PULL_SECRET_USER }}"
     token: "{{PULL_SECRET_TOKEN}}"
 
@@ -77,7 +77,7 @@ platformatic:
           enable: true
 
       # Set the ICC log level
-      log_level: info
+      log_level: debug
 
       # In production, these would be randomly and secretly generated
       secrets:

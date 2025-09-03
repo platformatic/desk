@@ -1,9 +1,4 @@
-podManagerServiceAccount:
-  bindToNamespaces: [{{ PLT_NAMESPACES }}]
-
-wattpro:
-  monitor:
-    namespaces: [{{ PLT_NAMESPACES }}]
+applicationNamespaces: [{{ PLT_NAMESPACES }}]
 
 services:
   icc:

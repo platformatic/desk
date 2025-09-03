@@ -1,9 +1,21 @@
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import minimist from 'minimist'
-import { loadYamlFile, error, info } from '../lib/utils.js'
+import { loadYamlFile, error, info, spawn, clusterName } from '../lib/utils.js'
 
 export const options = { command: 'profile', strict: true }
+
+async function getRunningClusters () {
+  try {
+    const result = await spawn('k3d', ['cluster', 'ls', '--output', 'json'])
+    const clusters = JSON.parse(result.stdout)
+    return clusters
+      .filter(cluster => cluster.serversRunning > 0 || cluster.agentsRunning > 0)
+      .map(cluster => cluster.name)
+  } catch (err) {
+    return []
+  }
+}
 
 export default async function cli (argv) {
   const args = minimist(argv)
@@ -20,6 +32,8 @@ export default async function cli (argv) {
         return
       }
 
+      const runningClusters = await getRunningClusters()
+
       info('Available profiles:\n')
 
       let output = []
@@ -28,10 +42,13 @@ export default async function cli (argv) {
         const profileData = await loadYamlFile(profilePath)
         
         const profileName = file.replace('.yaml', '')
+        const expectedClusterName = clusterName(profileName)
+        const isRunning = runningClusters.includes(expectedClusterName)
         const version = profileData.version || 'unknown'
         const description = (profileData.description || 'No description available').trim()
 
-        output.push(`>> ${profileName} (v${version})\n${description}`)
+        const statusIndicator = isRunning ? ' [RUNNING]' : ''
+        output.push(`>> ${profileName} (v${version})${statusIndicator}\n${description}`)
       }
 
       info(output.join('\n---\n'))

@@ -74,12 +74,13 @@ const IccSpecificSchema = Type.Object({
 })
 
 const ImagePullSecretSchema = Type.Object({
-  repo: Type.Optional(Type.String()),
+  registry: Type.Optional(Type.String()),
   user: Type.String(),
   token: Type.String()
 })
 
 const PlatformaticHelmSchema = Type.Object({
+  chartVersion: Type.Optional(Type.String()),
   imagePullSecret: Type.Optional(ImagePullSecretSchema),
 
   services: Type.Object({
@@ -99,7 +100,7 @@ const PlatformaticHelmSchema = Type.Object({
 })
 
 export const ProfileSchemaV4 = Type.Object({
-  version: Type.Union([Type.Literal(4), Type.String()]),
+  version: Type.Literal(4),
   description: Type.Optional(Type.String()),
   cluster: Type.Optional(Type.Object({
     namespaces: Type.Optional(Type.Array(Type.String(), { default: [] })),

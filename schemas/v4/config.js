@@ -48,8 +48,7 @@ const App = Type.Object({
 
 export const ConfigSchemaV4 = Type.Object({
   cluster: ClusterConfig,
-  dependencies: Type.Record(Type.String(), Type.Intersect([Chart, ChartSource])),
-  apps: Type.Array(App)
+  dependencies: Type.Record(Type.String(), Type.Intersect([Chart, ChartSource]))
 })
 
 export const SCHEMA_VERSION = 4

@@ -1,5 +1,4 @@
 import { Value } from '@sinclair/typebox/value'
-import * as semver from 'semver'
 import { ProfileSchemaV4, SCHEMA_VERSION as V4_VERSION } from './v4/profile.js'
 import { ProfileSchemaV3, SCHEMA_VERSION as V3_VERSION } from './v3/profile.js'
 
@@ -20,23 +19,22 @@ export function getSchema (version) {
 }
 
 export function parseProfile (data) {
-  if (!data.version) {
+  const schemaVersion = data.version
+  if (!schemaVersion) {
     throw new Error('Profile must include a `version` field')
   }
 
-  const { major: majorVersion } = semver.coerce(data.version.toString())
-
-  if (!SUPPORTED_VERSIONS.includes(majorVersion)) {
-    throw new Error(`Unsupported version: ${majorVersion}. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`)
+  if (!SUPPORTED_VERSIONS.includes(schemaVersion)) {
+    throw new Error(`Unsupported version: ${schemaVersion}. Supported versions: ${SUPPORTED_VERSIONS.join(', ')}`)
   }
 
-  const schema = getSchema(majorVersion)
+  const schema = getSchema(schemaVersion)
 
   const isValid = Value.Check(schema, data)
 
   if (!isValid) {
     const errors = [...Value.Errors(schema, data)]
-    throw new Error(`Validation failed for version ${data.version}: ${JSON.stringify(errors, null, 2)}`)
+    throw new Error(`Validation failed for version ${schemaVersion}: ${JSON.stringify(errors, null, 2)}`)
   }
 
   return Value.Parse(schema, data)

@@ -61,6 +61,8 @@ const GithubSchema = Type.Object({
 })
 
 const PlatformaticHelmSchema = Type.Object({
+  chartVersion: Type.Optional(Type.String()),
+
   github: GithubSchema,
 
   projects: Type.Object({
