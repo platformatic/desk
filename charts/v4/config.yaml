@@ -27,7 +27,7 @@ dependencies:
   platformatic/helm:
     location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
-    version: '4.0.0-alpha.6'
+    version: '4.0.0-alpha.7'
     namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:
@@ -59,11 +59,3 @@ dependencies:
     location: './local/traefik'
     releaseName: 'local-traefik'
     namespace: 'platformatic'
-
-apps:
-  - name: icc
-    url: "git@github.com:platformatic/icc-3.git"
-    defaultBranch: 'demo'
-  - name: machinist
-    url: "git@github.com:platformatic/machinist-3.git"
-    defaultBranch: 'demo'

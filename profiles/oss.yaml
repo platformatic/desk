@@ -1,15 +1,13 @@
-# This is a configuration profile which uses prebuilt images. This is most like
-# running `cib demo`.
-
-# Configuration version
 version: 4
+
+description: |
+  This configuration installs the OSS versions of ICC and Machinist.
 
 # Define the cluster provider and any relevant details
 # When the cluster is created, it will be named after this file: plt-example
 cluster:
   namespaces:
     - platformatic
-    - apps
 
   # This is the cluster provider key
   k3d:
@@ -33,17 +31,12 @@ dependencies:
 # Define what Platformatic applications to deploy and where they are sourced from
 # This matches the v4 Helm chart values.yaml
 platformatic:
-  imagePullSecret:
-    repo: ghcr.io
-    user: "{{ PULL_SECRET_USER }}"
-    token: "{{PULL_SECRET_TOKEN}}"
-
   services:
     icc:
       # Remote image through local registry cache
       image:
         tag: "latest"
-        repository: "ghcr.io/platformatic/plt-icc-3"
+        repository: "platformatic/intelligent-command-center"
 
       # Matches the features available in our Helm chart
       features:
@@ -55,10 +48,6 @@ platformatic:
           enable: false
         icc_jobs:
           enable: true
-        # When `icc.hotReload` is set to `true` then `desk` will set `features.dev_mode.enable`
-        # to `true`. Any value set here will be ignored.
-        dev_mode:
-          enable: false
 
       # Matches the login methods available in our Helm chart
       # If no method is enabled, `login_methods.demo` will be enabled.
@@ -71,13 +60,9 @@ platformatic:
           enable: false
           client_id: ""
           client_secret: ""
-        password:
-          enable: false
-        demo:
-          enable: true
 
       # Set the ICC log level
-      log_level: info
+      log_level: debug
 
       # In production, these would be randomly and secretly generated
       secrets:
@@ -88,14 +73,10 @@ platformatic:
     machinist:
       image:
         tag: "latest"
-        repository: "ghcr.io/platformatic/plt-machinist-3"
+        repository: "platformatic/machinist"
 
       features:
         event_export:
-          enable: false
-        # When `machinist.hotReload` is set to `true` then `desk` will set `features.dev_mode.enable`
-        # to `true`. Any value set here will be ignored.
-        dev_mode:
           enable: false
 
       log_level: info

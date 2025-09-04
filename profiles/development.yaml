@@ -1,10 +1,10 @@
-# This setup creates special images for icc and machinist which have volume mounts
-# mapped to local repositories. Essentially the same as running `cib dev`
-#
-# NOT FULLY IMPLEMENTED YET
-
-# Schema version
 version: 4
+
+description: |
+  This setup creates special images for icc and machinist which have volume mounts
+  mapped to local repositories. Essentially the same as running `cib dev`
+
+  The features for this profile have not been implemented yet.
 
 cluster:
   k3d:
