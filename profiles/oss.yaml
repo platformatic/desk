@@ -1,0 +1,82 @@
+version: 4
+
+description: |
+  This configuration installs the OSS versions of ICC and Machinist.
+
+# Define the cluster provider and any relevant details
+# When the cluster is created, it will be named after this file: plt-example
+cluster:
+  namespaces:
+    - platformatic
+
+  # This is the cluster provider key
+  k3d:
+    nodes: 1
+
+# Define the charts to be installed in your cluster
+dependencies:
+  prometheus-community/prometheus-adapter:
+    # When set to false, the _overrides.yaml_ file in the chart directory is
+    # ignored
+    plt_defaults: true
+  prometheus-community/kube-prometheus-stack:
+    plt_defaults: true
+  bitnamicharts/postgresql:
+    plt_defaults: true
+  bitnamicharts/valkey:
+    plt_defaults: true
+  local/traefik:
+    plt_defaults: false
+
+# Define what Platformatic applications to deploy and where they are sourced from
+# This matches the v4 Helm chart values.yaml
+platformatic:
+  services:
+    icc:
+      # Remote image through local registry cache
+      image:
+        tag: "latest"
+        repository: "platformatic/intelligent-command-center"
+
+      # Matches the features available in our Helm chart
+      features:
+        cache_recommendations:
+          enable: false
+        risk_service_dump:
+          enable: false
+        ffc:
+          enable: false
+        icc_jobs:
+          enable: true
+
+      # Matches the login methods available in our Helm chart
+      # If no method is enabled, `login_methods.demo` will be enabled.
+      login_methods:
+        google_oauth:
+          enable: false
+          client_id: ""
+          client_secret: ""
+        github_oauth:
+          enable: false
+          client_id: ""
+          client_secret: ""
+
+      # Set the ICC log level
+      log_level: debug
+
+      # In production, these would be randomly and secretly generated
+      secrets:
+        icc_session: "nqS4bQDlFNZfd1PtLwbkCDEgJiozzxRuyslNPtSSdeQ="
+        control_plane_keys: "iUIz122f2Kh49Q2PvGxJWuajJRm8B0TZ7orfGbf29LA="
+        user_manager_session: "XnlPIbATw2x/7xIX304esO9qKuCZLR3HOa8wTF6O3pc="
+
+    machinist:
+      image:
+        tag: "latest"
+        repository: "platformatic/machinist"
+
+      features:
+        event_export:
+          enable: false
+
+      log_level: info

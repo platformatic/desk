@@ -1,4 +1,4 @@
-version: 3.4.2
+version: 3
 
 description: |
   Try to mimic Mediaset's configuration in a local context.
@@ -29,6 +29,8 @@ dependencies:
 
 # Define what Platformatic applications to deploy and where they are sourced from
 platformatic:
+  chartVersion: 3.4.2
+
   github:
     registry: ghcr.io
     username: "{{ PULL_SECRET_USER }}"
