@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import minimist from 'minimist'
@@ -36,18 +38,6 @@ async function main () {
 
     program.register(options, cmd)
   }
-
-  program.register({ command: 'test', strict: true }, function () {
-    section('Testing')
-    info('info Without args')
-    info('info With args', { lol: 'lollers' })
-
-    warn('warn Without args')
-    warn('warn With args', { lol: 'lollers' })
-
-    error('error Without args')
-    error('error With args', { lol: 'lollers' })
-  })
 
   const result = await program.parseAsync(argv)
 
