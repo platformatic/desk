@@ -87,16 +87,7 @@ desk profile cache <profile-name>
 
 ### `deploy`
 
-> [!WARNING]
-> Not implemented yet
-
-Simplify deployment of wattpro applications into local cluster
-
-Deploy an existing image into Kubernetes:
-
-```sh
-desk deploy --profile <name> --image some-prebuilt-app:latest
-```
+Simplify deployment of wattpro applications into local cluster.
 
 Deploy a directory into Kubernetes:
 
@@ -104,7 +95,19 @@ Deploy a directory into Kubernetes:
 desk deploy --profile <name> --dir ./my-watt-project
 ```
 
+Deploy an existing image into Kubernetes:
+
+> [!WARNING]
+> Not implemented yet
+
+```sh
+desk deploy --profile <name> --image some-prebuilt-app:latest
+```
+
 Deploy with an environment file:
+
+> [!WARNING]
+> Not implemented yet
 
 ```sh
 desk deploy --profile <name> --dir ./my-watt-project --envfile ./my-watt-project/.env
@@ -122,7 +125,7 @@ to:
 Test out the installation script from ICC:
 
 ```sh
-desk cluster up --profile light
+desk cluster up --profile lite
 ```
 
 After this command completes, the install script command will be output. The
