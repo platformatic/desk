@@ -61,6 +61,8 @@ const GithubSchema = Type.Object({
 })
 
 const PlatformaticHelmSchema = Type.Object({
+  chartVersion: Type.Optional(Type.String()),
+
   github: GithubSchema,
 
   projects: Type.Object({
@@ -77,8 +79,10 @@ const PlatformaticHelmSchema = Type.Object({
 })
 
 export const ProfileSchemaV3 = Type.Object({
-  version: Type.Literal(3),
+  version: Type.Union([Type.Literal(3), Type.String()]),
+  description: Type.Optional(Type.String()),
   cluster: Type.Optional(Type.Object({
+    namespaces: Type.Optional(Type.Array(Type.String(), { default: [] })),
     k3d: K3dSchema
   })),
   dependencies: Type.Record(Type.String(), InfraComponentSchema),

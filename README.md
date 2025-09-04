@@ -61,16 +61,25 @@ desk cluster status --profile <name>
 
 ### `profile`
 
-> [!WARNING]
-> Not implemented yet
+View all available profiles:
+
+```sh
+desk profile list
+```
 
 Create a new profile using the wizard:
+
+> [!WARNING]
+> Not implemented yet
 
 ```sh
 desk profile wizard
 ```
 
 Cache a profile for offline use:
+
+> [!WARNING]
+> Not implemented yet
 
 ```sh
 desk profile cache <profile-name>
