@@ -3,7 +3,7 @@ import minimist from 'minimist'
 import { loadContext } from '../lib/context.js'
 import { startCluster, stopCluster, getClusterStatus } from '../lib/cluster/index.js'
 import { installInfra } from '../lib/infra.js'
-import { debug, info, warn, error } from '../lib/utils.js'
+import { debug, info, error } from '../lib/utils.js'
 import * as platformatic from '../lib/platformatic.js'
 import * as psql from '../lib/psql.js'
 import * as kubectl from '../lib/kubectl.js'
@@ -23,6 +23,7 @@ export default async function cli (argv) {
   debug.extend('cluster')(context.cluster)
 
   if (cmd === 'up') {
+    info('Starting cluster')
     await startCluster(context.cluster, { context })
     if (context.cluster.provider.config.gateway.enable) {
       const { checkResources } = await import(`../lib/cluster/${context.cluster.provider.config.gateway.name}.js`)
@@ -32,16 +33,28 @@ export default async function cli (argv) {
     if (Object.keys(context.dependencies || {}).length > 0) {
       await installInfra(context.dependencies, { context })
     }
-    await kubectl.waitFor('pod', 'postgresql-0', 'Ready', { context })
-    debug('POSTGRES READY')
+    await kubectl.waitByName('pod', 'postgresql-0', 'Ready', { context })
 
     if (!context.platformatic.skip) {
+      // HACKS The problem is ownership of the sql
+      info('Preparing database for Platformatic')
+      const { postgres } = await getClusterStatus({ context })
+      await psql.execute(postgres.connectionString, join(context.chartDir, 'platformatic/helm', 'docker-postgres-init.sql'))
+
+      info(`Installing Platformatic "${context.name}" profile`)
       const infra = await platformatic.createChartConfig(context.platformatic, { context })
       await installInfra(infra, { context })
 
-      // HACKS The problem is ownership of the sql
-      const { postgres } = await getClusterStatus({ context })
-      await psql.execute(postgres.connectionString, join(context.chartDir, 'platformatic/helm', 'docker-postgres-init.sql'))
+      info('Waiting for Platformatic to finish starting')
+      const k8sContext = {
+        namespace: infra[platformatic.CHART_NAME].namespace
+      }
+      await Promise.all([
+        kubectl.waitBySelector('pod', { 'app.kubernetes.io/instance': 'icc' }, 'Ready', k8sContext)
+          .then(() => info('ICC ready')),
+        kubectl.waitBySelector('pod', { 'app.kubernetes.io/instance': 'machinist' }, 'Ready', k8sContext)
+          .then(() => info('Machinist ready'))
+      ])
     }
 
     if (context.platformatic.skip) {
@@ -50,8 +63,8 @@ export default async function cli (argv) {
         if (status.install?.command) {
           info(`\nInstall command:\n${status.install.command}`)
         }
-      } catch (error) {
-        warn(`Note: Could not generate install command: ${error.message}`)
+      } catch (err) {
+        error(`Note: Could not generate install command: ${err.message}`)
       }
     }
   } else if (cmd === 'down') {
