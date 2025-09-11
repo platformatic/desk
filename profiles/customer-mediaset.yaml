@@ -32,15 +32,14 @@ platformatic:
   chartVersion: 3.4.2
 
   github:
-    registry: ghcr.io
     username: "{{ PULL_SECRET_USER }}"
     imagePullSecret: "{{PULL_SECRET_TOKEN}}"
 
   projects:
     icc:
       image:
-        tag: "v2.1.3"
-        repository: "ghcr.io/platformatic/plt-icc-3"
+        tag: "v2.2.0"
+        repository: "platformatic/enterprise-icc"
       path: ''
       overrides:
         env: {}
@@ -49,7 +48,7 @@ platformatic:
     machinist:
       image:
         tag: "v2.0.0"
-        repository: "ghcr.io/platformatic/plt-machinist-3"
+        repository: "platformatic/machinist"
       path: ''
       overrides:
         env: {}
