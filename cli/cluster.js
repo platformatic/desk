@@ -7,6 +7,7 @@ import { debug, info, error } from '../lib/utils.js'
 import * as platformatic from '../lib/platformatic.js'
 import * as psql from '../lib/psql.js'
 import * as kubectl from '../lib/kubectl.js'
+import { setTimeout } from 'node:timers/promises'
 
 export const options = { command: 'cluster', strict: true }
 
@@ -39,6 +40,7 @@ export default async function cli (argv) {
       // HACKS The problem is ownership of the sql
       info('Preparing database for Platformatic')
       const { postgres } = await getClusterStatus({ context })
+      await setTimeout(3000) // wait a bit more to avoid "psql: error: could not connect to server: Connection refused"
       await psql.execute(postgres.connectionString, join(context.chartDir, 'platformatic/helm', 'docker-postgres-init.sql'))
 
       info(`Installing Platformatic "${context.name}" profile`)
