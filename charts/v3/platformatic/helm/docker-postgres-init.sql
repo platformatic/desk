@@ -6,4 +6,5 @@ CREATE DATABASE cron;
 CREATE DATABASE compliance;
 CREATE DATABASE scaler;
 CREATE DATABASE trafficante;
+CREATE DATABASE traffic_inspector;
 CREATE DATABASE cluster_manager;
