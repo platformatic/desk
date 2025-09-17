@@ -35,20 +35,20 @@ dependencies:
     releaseName: 'prometheus-adapter'
     version: '4.11.0'
 
-  bitnamicharts/valkey:
-    repo: 'https://charts.bitnami.com/bitnami'
+  cloudpirates/valkey:
+    location: 'oci://registry-1.docker.io/cloudpirates/valkey'
     releaseName: 'valkey'
-    version: '2.0.0'
+    version: '0.3.2'
 
   prometheus-community/kube-prometheus-stack:
     repo: 'https://prometheus-community.github.io/helm-charts'
     releaseName: 'prometheus'
     version: '65.3.2'
 
-  bitnamicharts/postgresql:
-    repo: 'https://charts.bitnami.com/bitnami'
+  cloudpirates/postgres:
+    location: 'oci://registry-1.docker.io/cloudpirates/postgres'
     releaseName: 'postgresql'
-    version: '16.0.5'
+    version: '0.4.0'
 
   envoyproxy/gateway-helm:
     location: 'oci://registry-1.docker.io/envoyproxy/gateway-helm'
