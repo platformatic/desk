@@ -21,9 +21,9 @@ dependencies:
     plt_defaults: true
   prometheus-community/kube-prometheus-stack:
     plt_defaults: true
-  bitnamicharts/postgresql:
+  cloudpirates/postgres:
     plt_defaults: true
-  bitnamicharts/valkey:
+  cloudpirates/valkey:
     plt_defaults: true
   local/traefik:
     plt_defaults: false

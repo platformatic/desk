@@ -34,7 +34,7 @@ export default async function cli (argv) {
     if (Object.keys(context.dependencies || {}).length > 0) {
       await installInfra(context.dependencies, { context })
     }
-    await kubectl.waitByName('pod', 'postgresql-0', 'Ready', { context })
+    await kubectl.waitByName('pod', 'postgres-0', 'Ready', { context })
 
     if (!context.platformatic.skip) {
       // HACKS The problem is ownership of the sql
