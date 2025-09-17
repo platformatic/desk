@@ -39,7 +39,7 @@ export default async function cli (argv) {
   let appImage = args.image
   if (args.dir) {
     const directory = resolve(args.dir)
-    appImage = `platformatic/${basename(directory).split(sep).pop()}:${Date.now()}`
+    appImage = `plt.localreg/plt-local/${basename(directory).split(sep).pop()}:${Date.now()}`
     await registry.buildFromDirectory(directory, appImage)
   }
 
