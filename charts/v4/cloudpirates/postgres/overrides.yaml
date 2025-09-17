@@ -1,0 +1,11 @@
+auth:
+  username: postgres
+  password: postgres
+
+initdb:
+  scripts:
+    00_init_extensions.sql: |
+      create extension if not exists pgcrypto;
+
+service:
+  type: NodePort
