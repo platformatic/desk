@@ -1,6 +1,9 @@
 podManagerServiceAccount:
   bindToNamespaces: [{{ PLT_NAMESPACES }}]
 
+imagePullSecrets:
+  - name: dockerhub-secret
+
 wattpro:
   monitor:
     namespaces: [{{ PLT_NAMESPACES }}]
