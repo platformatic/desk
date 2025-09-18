@@ -1,8 +1,5 @@
 applicationNamespaces: [{{ PLT_NAMESPACES }}]
 
-imagePullSecrets:
-  - name: dockerhub-secret
-
 services:
   icc:
     database_url: "{{ POSTGRES_CONNECTION_STRING }}"
