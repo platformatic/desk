@@ -27,7 +27,7 @@ dependencies:
   platformatic/helm:
     location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
-    version: '4.0.0-alpha.7'
+    version: '4.0.0-alpha.9'
     namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:
