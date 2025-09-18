@@ -37,6 +37,21 @@ export default async function cli (argv) {
     await kubectl.waitByName('pod', 'postgres-0', 'Ready', { context })
 
     if (!context.platformatic.skip) {
+      // Create Docker registry secret if credentials are available
+      if (context.secrets.PULL_SECRET_USER && context.secrets.PULL_SECRET_TOKEN) {
+        info('Creating Docker registry secret for image pulls')
+        await kubectl.createDockerRegistrySecret(
+          'dockerhub-secret',
+          'https://index.docker.io/v1/',
+          context.secrets.PULL_SECRET_USER,
+          context.secrets.PULL_SECRET_TOKEN,
+          {
+            kubeContext: context.kube.contextName,
+            namespace: 'platformatic'
+          }
+        )
+      }
+
       // HACKS The problem is ownership of the sql
       info('Preparing database for Platformatic')
       const { postgres } = await getClusterStatus({ context })
