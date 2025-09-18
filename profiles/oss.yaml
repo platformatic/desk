@@ -31,6 +31,11 @@ dependencies:
 # Define what Platformatic applications to deploy and where they are sourced from
 # This matches the v4 Helm chart values.yaml
 platformatic:
+  imagePullSecret:
+    registry: docker.io
+    user: "{{ PULL_SECRET_USER }}"
+    token: "{{ PULL_SECRET_TOKEN }}"
+
   services:
     icc:
       # Remote image through local registry cache
