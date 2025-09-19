@@ -62,9 +62,9 @@ platformatic:
           client_id: ""
           client_secret: ""
         github_oauth:
-          enable: false
-          client_id: ""
-          client_secret: ""
+          enable: true
+          client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
+          client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
 
       # Set the ICC log level
       log_level: debug
