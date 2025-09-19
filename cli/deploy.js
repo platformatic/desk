@@ -37,10 +37,14 @@ export default async function cli (argv) {
   }
 
   let appImage = args.image
+  let appName
   if (args.dir) {
     const directory = resolve(args.dir)
-    appImage = `plt.localreg/plt-local/${basename(directory).split(sep).pop()}:${Date.now()}`
+    appName = basename(directory).split(sep).pop()
+    appImage = `plt.localreg/plt-local/${appName}:${Date.now()}`
     await registry.buildFromDirectory(directory, appImage)
+  } else {
+    appName = appImage.split(':')[0].split('/').pop()
   }
 
   const envVars = {}
@@ -52,5 +56,7 @@ export default async function cli (argv) {
   }
 
   await deploy.createDeployment(appImage, args.namespace, envVars, args['dry-run'], { context })
-  await deploy.createService(appImage, args.namespace, args['dry-run'], { context })
+  const serviceName = await deploy.createService(appImage, args.namespace, args['dry-run'], { context })
+  await deploy.addToIngress(serviceName, appName, args.namespace, args['dry-run'], { context })
+  await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
 }
