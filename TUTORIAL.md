@@ -62,7 +62,7 @@ Edit the `.env` file and configure the following mandatory settings:
 **GitHub OAuth (Required):**
 - `GITHUB_OAUTH_CLIENT_ID` - Your GitHub OAuth App Client ID
 - `GITHUB_OAUTH_CLIENT_SECRET` - Your GitHub OAuth App Client Secret
-- `GITHUB_OAUTH_VALID_EMAILS` - Comma-separated list of admin email addresses. Must match GitHub account emails. 
+- `GITHUB_OAUTH_VALID_EMAILS` - Comma-separated list of admin email addresses. One must match your GitHub account email. 
 
 **Docker Registry (only required for private images):**
 If using public images (the default for the OSS profile), skip this step.
