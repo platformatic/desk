@@ -43,7 +43,6 @@ platformatic:
         tag: "latest"
         repository: "platformatic/intelligent-command-center"
 
-      # Matches the features available in our Helm chart
       features:
         cache_recommendations:
           enable: false
@@ -65,6 +64,7 @@ platformatic:
           enable: true
           client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
           client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
+          valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
 
       # Set the ICC log level
       log_level: debug
