@@ -60,6 +60,7 @@ platformatic:
           enable: false
           client_id: ""
           client_secret: ""
+          valid_emails: ""
         github:
           enable: true
           client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
