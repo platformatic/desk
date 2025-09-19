@@ -37,6 +37,28 @@ Contents:
 Profiles are a simpler way to share a particular cluster configuration. Full
 documentation is available in [profiles/README.md](profiles/README.md).
 
+### Specifying Profiles
+
+Profiles can be specified in multiple ways:
+
+1. **By name** (default behavior): Uses profiles from the `profiles/` directory
+   ```sh
+   desk cluster up --profile lite
+   ```
+
+2. **By relative path**: Specify a profile relative to your current directory
+   ```sh
+   desk cluster up --profile ./my-custom-profile.yaml
+   desk cluster up --profile ../configs/production.yaml
+   ```
+
+3. **By absolute path**: Specify a full path to a profile file
+   ```sh
+   desk cluster up --profile /home/user/desk-profiles/custom.yaml
+   ```
+
+This allows you to maintain custom profiles outside the desk repository and share them across teams or projects.
+
 ## CLI
 
 ### `cluster`
