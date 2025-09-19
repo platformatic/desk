@@ -9,3 +9,6 @@ services:
     prometheus:
       url: "{{ PROMETHEUS_URL }}"
     public_url: "{{ PUBLIC_URL }}"
+    replicas: 
+      min: 1
+      max: 1
