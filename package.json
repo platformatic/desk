@@ -13,10 +13,10 @@
     "test": "node --test tests/"
   },
   "author": "Platformatic Team",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/platformatic/desk-cli.git"
+    "url": "git+https://github.com/platformatic/desk.git"
   },
   "dependencies": {
     "@fastify/deepmerge": "^3.1.0",
