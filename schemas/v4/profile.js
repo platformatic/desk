@@ -69,7 +69,11 @@ const LogLevelSchema = Type.Object({
 })
 
 const IccSpecificSchema = Type.Object({
-  login_methods: Type.Optional(Type.Record(Type.String(), Type.Object({ enable: Type.Boolean() }))),
+  login_methods: Type.Optional(Type.Record(Type.String(), Type.Object({
+    enable: Type.Boolean(),
+    client_id: Type.Optional(Type.String()),
+    client_secret: Type.Optional(Type.String())
+  }))),
   secrets: Type.Optional(Type.Record(Type.String(), Type.String()))
 })
 
