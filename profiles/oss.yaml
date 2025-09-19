@@ -57,11 +57,11 @@ platformatic:
       # Matches the login methods available in our Helm chart
       # If no method is enabled, `login_methods.demo` will be enabled.
       login_methods:
-        google_oauth:
+        google:
           enable: false
           client_id: ""
           client_secret: ""
-        github_oauth:
+        github:
           enable: true
           client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
           client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
