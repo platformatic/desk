@@ -9,7 +9,6 @@ This tutorial will guide you through setting up and running the Internal Contain
 - helm installed
 - k3d installed
 - git installed
-- pnpm installed
 - psql (PostgreSQL client) installed
 - Node.js 20.x or 22.x installed
 
@@ -47,7 +46,8 @@ Before setting up the environment, you need to create a GitHub OAuth application
    - **Application name**: ICC Local Development
    - **Homepage URL**: https://icc.plt
    - **Authorization callback URL**: https://icc.plt/api/login/github/callback
-4. Note down the Client ID and generate a Client Secret
+4. Note down the Client ID
+5. Click on "Generate a Client Secret" and note down the secret
 
 ### Configure the .env file
 
@@ -78,6 +78,7 @@ desk cluster up --profile oss
 ```
 
 This will create a local Kubernetes cluster with k3d and deploy all necessary components.
+The creation is done when `desk` prints out "ICC Ready"
 
 To verify everything is running correctly:
 
@@ -95,7 +96,7 @@ kubectl get pods --all-namespaces --watch
 To shut down the cluster when you're done:
 
 ```bash
-desk cluster down --profile oss
+desk clpuster down --profile oss
 ```
 
 ## Step 3: Deploy an Application
@@ -103,46 +104,55 @@ desk cluster down --profile oss
 Now let's deploy a sample application to test the ICC setup.
 You need a Watt application with a `Dockerfile`. Below is an example:
 
-**Note:** You must configure the correct `PLT_BASE_PATH` for your application, which should be your application name. 
 
 ```dockerfile
 FROM node:22-alpine
-
 ENV APP_HOME=/home/app/node/
-
 RUN mkdir -p $APP_HOME/node_modules && chown -R node:node $APP_HOME
 
-RUN npm install -g "@platformatic/watt-extra@latest"
+RUN npm install -g "@platformatic/watt-extra@^1.0.0"
 
 WORKDIR $APP_HOME
 
-COPY ./ ./
-
-RUN npm install
+# Copy the package.json & lock file first so that they are cached
+COPY ./package.json ./package.json
+COPY ./package-lock.json ./package-lock.json
+RUN npm ci
 
 COPY --chown=node:node . .
 
+# Default Watt port
 EXPOSE 3042
+
+# Prometheus port to query metrics
 EXPOSE 9090
 
-ENV PLT_BASE_PATH="/APPLICATION_NAME"
-
-RUN npm run build
-
 ENV PLT_ICC_URL="http://icc.platformatic.svc.cluster.local"
-
 CMD [ "watt-extra", "start" ]
-
 ```
 
-
 ### Deploy the application
+
+> **Important:** Your Watt application must be configured to listen on `0.0.0.0` to be accessible within the Kubernetes cluster. You can do this by setting `PLT_SERVER_HOSTNAME=0.0.0.0` in your application's `.env` file if `PLT_SERVER_HOSTNAME=` , or by configuring it in your Platformatic configuration directly.
 
 Use `desk deploy` specifying the application path:
 
 ```bash
 desk deploy --profile oss --dir APPLICATION_PATH
 ```
+If you are in the application folder, this is also OK:
+
+```
+desk deploy --profile oss --dir .
+```
+
+After the deploy is done, it prints out the URL of the deployed app:
+
+```
+Application deployed successfully!
+URL: https://svcs.gw.plt/MY_APP/
+```
+
 
 ### Access the application
 

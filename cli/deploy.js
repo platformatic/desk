@@ -2,7 +2,7 @@ import { resolve, sep, basename } from 'node:path'
 import minimist from 'minimist'
 import dotenv from 'dotenv'
 import { loadContext } from '../lib/context.js'
-import { error } from '../lib/utils.js'
+import { error, info } from '../lib/utils.js'
 import * as registry from '../lib/registry.js'
 import * as deploy from '../lib/deploy.js'
 
@@ -59,4 +59,10 @@ export default async function cli (argv) {
   const serviceName = await deploy.createService(appImage, args.namespace, args['dry-run'], { context })
   await deploy.addToIngress(serviceName, appName, args.namespace, args['dry-run'], { context })
   await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
+
+  // Print the URL where the app can be accessed
+  if (!args['dry-run']) {
+    info(`\nApplication deployed successfully!`)
+    info(`URL: https://svcs.gw.plt/${appName}/`)
+  }
 }
