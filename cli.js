@@ -19,7 +19,7 @@ import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import minimist from 'minimist'
 import commist from 'commist'
-import { info, warn, error, section } from './lib/utils.js'
+import { info } from './lib/utils.js'
 import help from './lib/help.js'
 
 const program = commist()
