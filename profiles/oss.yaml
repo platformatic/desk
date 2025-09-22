@@ -68,7 +68,7 @@ platformatic:
           valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
 
       # Set the ICC log level
-      log_level: debug
+      log_level: info
 
       # In production, these would be randomly and secretly generated
       secrets:
