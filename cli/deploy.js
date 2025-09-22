@@ -62,7 +62,7 @@ export default async function cli (argv) {
 
   // Print the URL where the app can be accessed
   if (!args['dry-run']) {
-    info(`\nApplication deployed successfully!`)
+    info('\nApplication deployed successfully!')
     info(`URL: https://svcs.gw.plt/${appName}/`)
   }
 }
