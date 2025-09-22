@@ -55,8 +55,8 @@ export default async function cli (argv) {
     })
   }
 
-  await deploy.createDeployment(appImage, args.namespace, envVars, args['dry-run'], { context })
-  const serviceName = await deploy.createService(appImage, args.namespace, args['dry-run'], { context })
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context })
+  const serviceName = await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context })
   await deploy.addToIngress(serviceName, appName, args.namespace, args['dry-run'], { context })
   await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
 
