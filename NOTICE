@@ -1,0 +1,44 @@
+Platformatic Desk
+Copyright 2025 Platformatic
+
+This product includes software developed at
+Platformatic (https://platformatic.dev).
+
+========================================================================
+
+Third-party software notices and attributions
+========================================================================
+
+This project includes the following third-party dependencies:
+
+@fastify/deepmerge (MIT License)
+Copyright (c) 2020-present Fastify
+
+@sinclair/typebox (MIT License)
+Copyright (c) 2017-2024 Sinclair
+
+commist (MIT License)
+Copyright (c) 2015-present commist contributors
+
+debug (MIT License)
+Copyright (c) 2014-present TJ Holowaychuk
+
+dotenv (BSD-2-Clause License)
+Copyright (c) 2015 Scott Motte
+
+minimist (MIT License)
+Copyright (c) 2013 James Halliday
+
+nano-spawn (MIT License)
+Copyright (c) 2024 Yannick Croissant
+
+picocolors (ISC License)
+Copyright (c) 2021 Alexey Raspopov
+
+semver (ISC License)
+Copyright (c) Isaac Z. Schlueter and Contributors
+
+yaml (ISC License)
+Copyright (c) Eemeli Aro
+
+For the full license text of these dependencies, please refer to their respective repositories.
