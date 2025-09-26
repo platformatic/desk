@@ -27,7 +27,7 @@ dependencies:
   platformatic/helm:
     location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
-    version: '3.4.2'
+    version: '3.4.3'
     namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:
@@ -47,7 +47,7 @@ dependencies:
 
   cloudpirates/postgres:
     location: 'oci://registry-1.docker.io/cloudpirates/postgres'
-    releaseName: 'postgresql'
+    releaseName: 'postgres'
     version: '0.4.0'
 
   envoyproxy/gateway-helm:
