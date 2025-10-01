@@ -47,6 +47,8 @@ export default async function cli (argv) {
       const infra = await platformatic.createChartConfig(context.platformatic, { context })
       await installInfra(infra, { context })
 
+      await platformatic.patchForDevMode(context.platformatic, { context })
+
       info('Waiting for Platformatic to finish starting')
       const k8sContext = {
         namespace: infra[platformatic.CHART_NAME].namespace
