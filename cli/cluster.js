@@ -20,7 +20,7 @@ export default async function cli (argv) {
   })
   const [cmd] = args._
 
-  const context = await loadContext(args.profile)
+  const context = await loadContext(args.profile, { command: cmd })
   debug.extend('cluster')(context.cluster)
 
   if (cmd === 'up') {
