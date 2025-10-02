@@ -24,11 +24,6 @@ dependencies:
     plt_defaults: false
 
 platformatic:
-  imagePullSecret:
-    registry: docker.io
-    user: "{{ PULL_SECRET_USER }}"
-    token: "{{ PULL_SECRET_TOKEN }}"
-
   services:
     icc:
       hotReload: true

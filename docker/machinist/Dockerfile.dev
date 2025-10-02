@@ -17,5 +17,5 @@ WORKDIR /app
 # 3. node_modules must be rebuilt in the container because native modules (like sodium-native)
 #    are compiled for the host OS and won't work in Alpine Linux
 # 4. .env files from the host might have localhost connection strings that would override
-#    the Kubernetes environment variables
-CMD sh -c 'find . -name ".env" -type f -delete && rm -rf node_modules && pnpm install && pnpm run dev'
+#    the Kubernetes environment variables, so we rename them temporarily
+CMD sh -c 'find . -name ".env" -type f -exec mv {} {}.backup-env \; && rm -rf node_modules && pnpm install && pnpm run dev'
