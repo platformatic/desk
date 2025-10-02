@@ -146,11 +146,11 @@ to:
 
 ### Development Profile
 
-The `development` profile enables hot reloading for ICC and Machinist services using local repositories:
+The `development` profile enables hot reloading for ICC and Machinist services using local repositories.
+
+First uncomment/set the `ICC_REPO` and `MACHINIST_REPO` variables on `.env`, then:
 
 ```sh
-export ICC_REPO=/path/to/icc3
-export MACHINIST_REPO=/path/to/machinist
 desk cluster up --profile development
 ```
 
