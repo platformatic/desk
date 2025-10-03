@@ -8,7 +8,14 @@ RUN npm i pnpm@10 --location=global
 
 RUN apk add --update python3 make g++ gcompat && rm -rf /var/cache/apk/*
 
+# Create a non-root user to avoid creating root-owned files in mounted volumes
+RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -s /bin/sh -D appuser
+RUN chown -R appuser:appuser $PNPM_HOME
+
 WORKDIR /app
+RUN chown appuser:appuser /app
+
+USER appuser
 
 # This CMD does the following at runtime (not build time) because:
 # 1. /app is mounted as a volume from the host, so anything we COPY/RUN here during
