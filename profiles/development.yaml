@@ -29,10 +29,6 @@ platformatic:
       hotReload: true
       localRepo: "{{ ICC_REPO }}"
 
-      image:
-        tag: "dev"
-        repository: "platformatic/intelligent-command-center"
-
       features:
         cache_recommendations:
           enable: false
@@ -65,10 +61,6 @@ platformatic:
     machinist:
       hotReload: true
       localRepo: "{{ MACHINIST_REPO }}"
-
-      image:
-        tag: "dev"
-        repository: "platformatic/machinist"
 
       features:
         event_export:
