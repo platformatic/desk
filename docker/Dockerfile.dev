@@ -6,23 +6,6 @@ ENV PATH=$PNPM_HOME:$PATH
 RUN mkdir $PNPM_HOME
 RUN npm i pnpm@10 --location=global
 
-RUN apk add --update python3 make g++ gcompat && rm -rf /var/cache/apk/*
-
-# Create a non-root user to avoid creating root-owned files in mounted volumes
-RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -s /bin/sh -D appuser
-RUN chown -R appuser:appuser $PNPM_HOME
-
 WORKDIR /app
-RUN chown appuser:appuser /app
 
-USER appuser
-
-# This CMD does the following at runtime (not build time) because:
-# 1. /app is mounted as a volume from the host, so anything we COPY/RUN here during
-#    build would be overwritten by the volume mount
-# 2. We need to use the exact code from the local repository
-# 3. node_modules must be rebuilt in the container because native modules (like sodium-native)
-#    are compiled for the host OS and won't work in Alpine Linux
-# 4. .env files from the host might have localhost connection strings that would override
-#    the Kubernetes environment variables, so we rename them temporarily
-CMD sh -c 'find . -name ".env" -type f -exec mv {} {}.backup-env \; && rm -rf node_modules && pnpm install && pnpm run dev'
+CMD sh -c 'find . -name ".env" -type f -exec mv {} {}.backup-env \;' && pnpm run dev
