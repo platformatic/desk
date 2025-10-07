@@ -144,6 +144,26 @@ to:
 
 ## Examples
 
+### Development Profile
+
+The `development` profile enables hot reloading for ICC and Machinist services using local repositories.
+
+First uncomment/set the `ICC_REPO` and `MACHINIST_REPO` variables on `.env`, then:
+
+```sh
+desk cluster up --profile development
+```
+
+This profile:
+- Mounts your local ICC and Machinist repositories into the Kubernetes cluster
+- Runs services with `pnpm run dev` for hot reloading
+- Sets `DEV_K8S=true` to enable Platformatic DB service file watching
+- Uses the same base image (`node:22.20.0-alpine`) as production for native module compatibility
+
+When code changes are made in the local repositories, the services will automatically reload.
+
+### Testing ICC Installation Script
+
 Test out the installation script from ICC:
 
 ```sh

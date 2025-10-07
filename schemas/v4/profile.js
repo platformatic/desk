@@ -6,21 +6,14 @@ const InfraComponentSchema = Type.Object({
   plt_defaults: Type.Boolean()
 })
 
-// Schema for platformatic service configuration with image
-const PlatformaticServiceWithImageSchema = Type.Object({
-  image: Type.Object({
+// Schema for platformatic service configuration
+const PlatformaticServiceSchema = Type.Object({
+  hotReload: Type.Optional(Type.Boolean()),
+  localRepo: Type.Optional(Type.String()),
+  image: Type.Optional(Type.Object({
     tag: Type.String(),
     repository: Type.String()
-  })
-}, {
-})
-
-// Schema for platformatic service configuration with local
-const PlatformaticServiceWithLocalSchema = Type.Object({
-  hotReload: Type.Optional(Type.Boolean()),
-  local: Type.Object({
-    path: Type.String()
-  })
+  }))
 }, {
 })
 
@@ -28,11 +21,6 @@ const PlatformaticSkipSchema = Type.Object({
   skip: Type.Boolean()
 }, {
 })
-
-const PlatformaticServiceSchema = Type.Union([
-  PlatformaticServiceWithImageSchema,
-  PlatformaticServiceWithLocalSchema
-])
 
 const K3dRegistry = Type.Object({
   address: Type.String(),
