@@ -56,6 +56,12 @@ const LogLevelSchema = Type.Object({
   ])
 })
 
+const ScalerSchema = Type.Object({
+  scaler: Type.Optional(Type.Object({
+    algorithm_version: Type.String()
+  }))
+})
+
 const IccSpecificSchema = Type.Object({
   login_methods: Type.Optional(Type.Record(Type.String(), Type.Object({
     enable: Type.Boolean(),
@@ -80,6 +86,7 @@ const PlatformaticHelmSchema = Type.Object({
     icc: Type.Intersect([
       FeatureSchema,
       LogLevelSchema,
+      ScalerSchema,
       IccSpecificSchema,
       PlatformaticServiceSchema
     ]),
