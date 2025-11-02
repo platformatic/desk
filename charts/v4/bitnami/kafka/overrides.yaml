@@ -1,0 +1,73 @@
+image:
+  registry: docker.io
+  repository: confluentinc/cp-kafka
+  tag: "7.9.0"
+
+kraft:
+  enabled: true
+  clusterId: "gPJsB-TJE9oxCMwjUbji7Q"
+
+replicaCount: 1
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+service:
+  type: ClusterIP
+  ports:
+    client: 9092
+
+listeners:
+  client:
+    protocol: PLAINTEXT
+    port: 9092
+  controller:
+    protocol: PLAINTEXT
+    port: 9093
+  interBroker:
+    protocol: PLAINTEXT
+    port: 9094
+
+defaultReplicationFactor: 1
+minInSyncReplicas: 1
+offsetsTopicReplicationFactor: 1
+transactionStateLogReplicationFactor: 1
+transactionStateLogMinIsr: 1
+
+groupCoordinatorRebalanceProtocols: "classic,consumer"
+groupInitialRebalanceDelayMs: 0
+groupCoordinatorNewGroupMinSize: 1
+
+sasl:
+  client:
+    users: []
+  interbroker:
+    users: []
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+autoCreateTopicsEnable: true
+
+logRetentionHours: 24
+logRetentionBytes: 1073741824
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 5
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10
+  failureThreshold: 5
