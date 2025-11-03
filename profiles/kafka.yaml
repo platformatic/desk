@@ -1,23 +1,18 @@
 version: 4
 
 description: |
-  This configuration installs the OSS versions of ICC and Machinist.
+  This setup creates special images for icc and machinist which have volume mounts
+  mapped to local repositories. Essentially the same as running `cib dev`
 
-# Define the cluster provider and any relevant details
-# When the cluster is created, it will be named after this file: plt-example
 cluster:
   namespaces:
     - platformatic
 
-  # This is the cluster provider key
   k3d:
     nodes: 1
 
-# Define the charts to be installed in your cluster
 dependencies:
   prometheus-community/prometheus-adapter:
-    # When set to false, the _overrides.yaml_ file in the chart directory is
-    # ignored
     plt_defaults: true
   prometheus-community/kube-prometheus-stack:
     plt_defaults: true
@@ -27,24 +22,14 @@ dependencies:
     plt_defaults: true
   local/traefik:
     plt_defaults: false
-  # Uncomment to enable Kafka (optional)
-  # local/kafka:
-  #   plt_defaults: true
+  local/kafka:
+    plt_defaults: true
 
-# Define what Platformatic applications to deploy and where they are sourced from
-# This matches the v4 Helm chart values.yaml
 platformatic:
-  imagePullSecret:
-    registry: docker.io
-    user: "{{ PULL_SECRET_USER }}"
-    token: "{{ PULL_SECRET_TOKEN }}"
-
   services:
     icc:
-      # Remote image through local registry cache
-      image:
-        tag: "latest"
-        repository: "platformatic/intelligent-command-center"
+      hotReload: true
+      localRepo: "{{ ICC_REPO }}"
 
       features:
         cache_recommendations:
@@ -56,8 +41,6 @@ platformatic:
         icc_jobs:
           enable: true
 
-      # Matches the login methods available in our Helm chart
-      # If no method is enabled, `login_methods.demo` will be enabled.
       login_methods:
         google:
           enable: false
@@ -70,22 +53,22 @@ platformatic:
           client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
           valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
 
-      # Set the ICC log level
-      log_level: info
+      log_level: debug
 
-      # In production, these would be randomly and secretly generated
       secrets:
         icc_session: "nqS4bQDlFNZfd1PtLwbkCDEgJiozzxRuyslNPtSSdeQ="
         control_plane_keys: "iUIz122f2Kh49Q2PvGxJWuajJRm8B0TZ7orfGbf29LA="
         user_manager_session: "XnlPIbATw2x/7xIX304esO9qKuCZLR3HOa8wTF6O3pc="
 
+      scaler:
+        algorithm_version: "v2"
+
     machinist:
-      image:
-        tag: "latest"
-        repository: "platformatic/machinist"
+      hotReload: true
+      localRepo: "{{ MACHINIST_REPO }}"
 
       features:
         event_export:
           enable: false
 
-      log_level: info
+      log_level: debug

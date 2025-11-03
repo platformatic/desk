@@ -5,6 +5,7 @@ import { loadContext } from '../lib/context.js'
 import { error, info } from '../lib/utils.js'
 import * as registry from '../lib/registry.js'
 import * as deploy from '../lib/deploy.js'
+import { getClusterStatus } from '../lib/cluster/index.js'
 
 export const options = { command: 'deploy', strict: true }
 
@@ -53,6 +54,11 @@ export default async function cli (argv) {
       path: [resolve(args.envfile)],
       processEnv: envVars
     })
+  }
+
+  const clusterStatus = await getClusterStatus({ context })
+  if (clusterStatus.kafka?.connectionString) {
+    envVars.KAFKA_CONNECTION_STRING = clusterStatus.kafka.connectionString
   }
 
   await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context })

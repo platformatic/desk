@@ -92,6 +92,10 @@ export default async function cli (argv) {
       info(`Prometheus: ${status.prometheus.url}`)
     }
 
+    if (status.kafka?.connectionString) {
+      info(`Kafka: ${status.kafka.connectionString}`)
+    }
+
     if (status.install?.command) {
       info(`\nInstall command:\n${status.install.command}`)
     }

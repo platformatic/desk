@@ -20,6 +20,9 @@ dependencies:
     plt_defaults: true
   local/traefik:
     plt_defaults: false
+  # Uncomment to enable Kafka (optional)
+  # local/kafka:
+  #   plt_defaults: true
 
 platformatic:
   skip: true

@@ -1,0 +1,20 @@
+# Default values for local Kafka deployment
+# This chart deploys Confluent Kafka in KRaft mode for development
+
+kafka:
+  image:
+    repository: confluentinc/cp-kafka
+    tag: "7.9.0"
+
+  clusterId: "gPJsB-TJE9oxCMwjUbji7Q"
+
+  storage:
+    size: 8Gi
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
