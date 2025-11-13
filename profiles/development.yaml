@@ -61,6 +61,11 @@ platformatic:
         control_plane_keys: "iUIz122f2Kh49Q2PvGxJWuajJRm8B0TZ7orfGbf29LA="
         user_manager_session: "XnlPIbATw2x/7xIX304esO9qKuCZLR3HOa8wTF6O3pc="
 
+      scaler:
+        algorithm_version: "v1"
+        cooldown: 10
+        periodic_trigger: 60
+
     machinist:
       hotReload: true
       localRepo: "{{ MACHINIST_REPO }}"
