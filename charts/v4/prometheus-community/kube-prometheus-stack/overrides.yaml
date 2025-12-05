@@ -700,6 +700,9 @@ prometheus:
       repository: prometheus/prometheus
       tag: v2.52.0
 
+    # Fix for Helm v4: prevent chart from adding release label requirement
+    podMonitorSelectorNilUsesHelmValues: false
+
     ruleSelector:
       matchLabels: null
     serviceMonitorSelector:
