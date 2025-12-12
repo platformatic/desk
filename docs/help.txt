@@ -8,6 +8,7 @@ Usage:
 Available commands:
 	cluster		Manage a Platformatic-Kubernetes cluster
 	deploy		Deploy a wattpro application into a cluster
+	doctor		Check if required tools are installed
 	help		This screen, right here
 	profile		Manage cluster profiles
 

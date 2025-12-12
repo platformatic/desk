@@ -1,0 +1,15 @@
+Tool verification
+
+Checks if all required external tools are installed on your system.
+
+Usage:
+	desk doctor
+
+Required tools:
+	docker		Container runtime
+	k3d		k3s cluster management
+	kubectl		Kubernetes CLI
+	helm		Kubernetes package manager
+
+The command will display the status and version of each tool, along with
+installation instructions for any missing tools.

@@ -4,6 +4,7 @@ import { loadContext } from '../lib/context.js'
 import { startCluster, stopCluster, getClusterStatus } from '../lib/cluster/index.js'
 import { installInfra } from '../lib/infra.js'
 import { debug, info, error } from '../lib/utils.js'
+import { verifyTools, getMissingTools } from '../lib/doctor.js'
 import * as platformatic from '../lib/platformatic.js'
 import * as psql from '../lib/psql.js'
 import * as kubectl from '../lib/kubectl.js'
@@ -24,6 +25,17 @@ export default async function cli (argv) {
   debug.extend('cluster')(context.cluster)
 
   if (cmd === 'up') {
+    const { results, allInstalled } = await verifyTools()
+    if (!allInstalled) {
+      const missing = getMissingTools(results)
+      error('Missing required tools:')
+      for (const tool of missing) {
+        error(`  - ${tool.name}: Install from ${tool.installUrl}`)
+      }
+      error('\nRun "desk doctor" to check all required tools.')
+      process.exit(1)
+    }
+
     info('Starting cluster')
     await startCluster(context.cluster, { context })
     if (context.cluster.provider.config.gateway.enable) {
