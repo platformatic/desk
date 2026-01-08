@@ -5,15 +5,28 @@ Platformatic-ready.
 
 Contents:
 
+* [Prerequisites](#prerequisites)
 * [Setup](#setup)
 * [Profiles](#profiles)
 * [CLI](#cli)
     * [`cluster`](#cluster)
+    * [`doctor`](#doctor)
     * [`profile`](#profile)
     * [`deploy`](#deploy)
 * [Troubleshooting](#troubleshooting)
 * [Examples](#examples)
 
+
+## Prerequisites
+
+The following tools must be installed on your system:
+
+- [Docker](https://docs.docker.com/get-docker/) - Container runtime
+- [k3d](https://k3d.io/#installation) - k3s cluster management
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) - Kubernetes CLI
+- [Helm](https://helm.sh/docs/intro/install/) - Kubernetes package manager
+
+Run `desk doctor` to verify all tools are installed correctly.
 
 ## Setup
 
@@ -30,6 +43,15 @@ Contents:
 3. Add Github PAT to _.env_
     ```sh
     cp .env.sample .env
+    ```
+4. Add the following entries to `/etc/hosts`:
+    ```
+    127.0.0.1 icc.plt
+    127.0.0.1 machinist.plt
+    127.0.0.1 svcs.gw.plt
+    127.0.0.1 svcs-preview.gw.plt
+    127.0.0.1 prometheus.plt
+    127.0.0.1 k3d-plt-registry
     ```
 
 ## Profiles
@@ -79,6 +101,14 @@ Get status:
 
 ```sh
 desk cluster status --profile <name>
+```
+
+### `doctor`
+
+Verify that all required tools are installed:
+
+```sh
+desk doctor
 ```
 
 ### `profile`
