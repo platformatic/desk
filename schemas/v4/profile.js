@@ -58,7 +58,9 @@ const LogLevelSchema = Type.Object({
 
 const ScalerSchema = Type.Object({
   scaler: Type.Optional(Type.Object({
-    algorithm_version: Type.String()
+    algorithm_version: Type.Optional(Type.String()),
+    cooldown: Type.Optional(Type.Number()),
+    periodic_trigger: Type.Optional(Type.Number())
   }))
 })
 
