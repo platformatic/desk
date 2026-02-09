@@ -33,6 +33,8 @@ platformatic:
       localRepo: "{{ ICC_REPO }}"
 
       features:
+        cache:
+          enable: true
         cache_recommendations:
           enable: false
         risk_service_dump:
