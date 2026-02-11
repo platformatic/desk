@@ -25,8 +25,9 @@ cluster:
 # offline.yaml - defines the additional elements that need to be downloaded for fully-offline cluster building
 dependencies:
   platformatic/helm:
-    location: './platformatic/helm-local'
+    location: 'oci://ghcr.io/platformatic/helm'
     releaseName: 'platformatic'
+    version: '4.0.2-alpha3'
     namespace: 'platformatic'
 
   prometheus-community/prometheus-adapter:
