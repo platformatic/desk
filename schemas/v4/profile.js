@@ -6,6 +6,17 @@ const InfraComponentSchema = Type.Object({
   plt_defaults: Type.Boolean()
 })
 
+// Schema for Kubernetes resource limits/requests
+const ResourceQuantitySchema = Type.Object({
+  memory: Type.Optional(Type.String()),
+  cpu: Type.Optional(Type.String())
+})
+
+const ResourcesSchema = Type.Object({
+  limits: Type.Optional(ResourceQuantitySchema),
+  requests: Type.Optional(ResourceQuantitySchema)
+})
+
 // Schema for platformatic service configuration
 const PlatformaticServiceSchema = Type.Object({
   hotReload: Type.Optional(Type.Boolean()),
@@ -13,8 +24,8 @@ const PlatformaticServiceSchema = Type.Object({
   image: Type.Optional(Type.Object({
     tag: Type.String(),
     repository: Type.String()
-  }))
-}, {
+  })),
+  resources: Type.Optional(ResourcesSchema)
 })
 
 const PlatformaticSkipSchema = Type.Object({

@@ -32,6 +32,14 @@ platformatic:
       hotReload: true
       localRepo: "{{ ICC_REPO }}"
 
+      resources:
+        limits:
+          memory: "4Gi"
+          cpu: "2"
+        requests:
+          memory: "2Gi"
+          cpu: "2"
+
       features:
         cache:
           enable: true
@@ -56,7 +64,7 @@ platformatic:
           client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
           valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
 
-      log_level: debug
+      log_level: info
 
       secrets:
         icc_session: "nqS4bQDlFNZfd1PtLwbkCDEgJiozzxRuyslNPtSSdeQ="
