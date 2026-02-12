@@ -4,7 +4,7 @@
 kafka:
   image:
     repository: confluentinc/cp-kafka
-    tag: "7.9.0"
+    tag: "8.1.1"
 
   clusterId: "gPJsB-TJE9oxCMwjUbji7Q"
 
