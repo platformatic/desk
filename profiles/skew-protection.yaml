@@ -52,6 +52,8 @@ platformatic:
           enable: false
         ffc:
           enable: false
+        skew_protection:
+          enable: true
         icc_jobs:
           enable: true
 
