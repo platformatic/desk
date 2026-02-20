@@ -60,6 +60,11 @@ dependencies:
     releaseName: 'local-traefik'
     namespace: 'platformatic'
 
+  local/gateway:
+    location: './local/gateway'
+    releaseName: 'local-gateway'
+    namespace: 'platformatic'
+
   local/kafka:
     location: './local/kafka'
     releaseName: 'kafka'

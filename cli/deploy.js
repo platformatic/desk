@@ -12,13 +12,14 @@ export const options = { command: 'deploy', strict: true }
 export default async function cli (argv) {
   const args = minimist(argv, {
     bool: ['dry-run'],
-    string: ['dir', 'image', 'namespace', 'envfile', 'profile'],
+    string: ['dir', 'image', 'namespace', 'envfile', 'profile', 'version'],
     alias: {
       dir: 'd',
       image: 'i',
       namespace: 'n',
       envfile: 'e',
-      profile: 'p'
+      profile: 'p',
+      version: 'v'
     },
     default: {
       namespace: 'platformatic'
@@ -61,14 +62,24 @@ export default async function cli (argv) {
     envVars.KAFKA_CONNECTION_STRING = clusterStatus.kafka.connectionString
   }
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context })
-  const serviceName = await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context })
-  await deploy.addToIngress(serviceName, appName, args.namespace, args['dry-run'], { context })
-  await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
+  const version = args.version
 
-  // Print the URL where the app can be accessed
-  if (!args['dry-run']) {
-    info('\nApplication deploying. It may take some time to see it available.')
-    info(`Application URL: https://svcs.gw.plt/${appName}/`)
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version })
+  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version })
+
+  if (version) {
+    // Versioned deploys route through Gateway API HTTPRoutes managed by ICC
+    if (!args['dry-run']) {
+      info('\nVersioned deployment creating. ICC will manage routing via Gateway API.')
+      info(`App: ${appName}, Version: ${version}`)
+    }
+  } else {
+    await deploy.addToIngress(appName, appName, args.namespace, args['dry-run'], { context })
+    await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
+
+    if (!args['dry-run']) {
+      info('\nApplication deploying. It may take some time to see it available.')
+      info(`Application URL: https://svcs.gw.plt/${appName}/`)
+    }
   }
 }
