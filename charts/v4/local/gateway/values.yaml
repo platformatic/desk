@@ -1,0 +1,6 @@
+gateway:
+  name: platformatic
+  namespace: platformatic
+  gatewayClassName: eg
+  listener:
+    port: 80

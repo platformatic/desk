@@ -156,6 +156,24 @@ Deploy an existing image into Kubernetes:
 desk deploy --profile <name> --image some-prebuilt-app:latest
 ```
 
+Deploy a versioned application for skew protection testing:
+
+```sh
+desk deploy --profile skew-protection --dir ./my-watt-project --version v1
+```
+
+Deploy a second version alongside the first:
+
+```sh
+desk deploy --profile skew-protection --dir ./my-watt-project --version v2
+```
+
+When `--version` / `-v` is provided, the Deployment and Service are named
+`{app}-{version}` (e.g., `my-watt-project-v1`) and labelled with
+`app.kubernetes.io/name: my-watt-project` and `plt.dev/version: v1`. No Traefik
+IngressRoute is created — traffic routes through Gateway API HTTPRoutes managed
+by ICC.
+
 Deploy with an environment file:
 
 > [!WARNING]
@@ -191,6 +209,33 @@ This profile:
 - Uses the same base image (`node:22.20.0-alpine`) as production for native module compatibility
 
 When code changes are made in the local repositories, the services will automatically reload.
+
+### Skew Protection Profile
+
+The `skew-protection` profile sets up a cluster with Envoy Gateway as a
+Gateway API controller, enabling ICC to manage HTTPRoute resources for
+version-aware request routing.
+
+```sh
+desk cluster up --profile skew-protection
+```
+
+This profile installs:
+- All base dependencies (Prometheus, Postgres, Valkey)
+- **Envoy Gateway** — provides the `eg` GatewayClass and runs the data plane
+- **Gateway resource** — a `platformatic` Gateway in the `platformatic` namespace
+- **Traefik** — for non-skew-protection routes (ICC dashboard, etc.)
+- ICC and Machinist with hot reload from local repositories
+
+After the cluster is up, deploy versioned applications:
+
+```sh
+desk deploy --profile skew-protection --dir ./my-app --version v1
+desk deploy --profile skew-protection --dir ./my-app --version v2
+```
+
+ICC will detect the new versions via pod labels and create HTTPRoute rules to
+route traffic to the correct version based on the `__plt_dpl` cookie.
 
 ### Testing ICC Installation Script
 

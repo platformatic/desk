@@ -1,0 +1,90 @@
+version: 4
+
+description: |
+  Skew protection testing profile. Installs Envoy Gateway as the Gateway API
+  controller and creates a Gateway resource so ICC can manage HTTPRoute rules
+  for version-aware request routing. ICC and Machinist run with hot reload
+  from local repositories.
+
+cluster:
+  namespaces:
+    - platformatic
+
+  k3d:
+    nodes: 1
+
+dependencies:
+  prometheus-community/prometheus-adapter:
+    plt_defaults: true
+  prometheus-community/kube-prometheus-stack:
+    plt_defaults: true
+  cloudpirates/postgres:
+    plt_defaults: true
+  cloudpirates/valkey:
+    plt_defaults: true
+  local/traefik:
+    plt_defaults: false
+  envoyproxy/gateway-helm:
+    plt_defaults: true
+  local/gateway:
+    plt_defaults: true
+
+platformatic:
+  services:
+    icc:
+      hotReload: true
+      localRepo: "{{ ICC_REPO }}"
+
+      resources:
+        limits:
+          memory: "4Gi"
+          cpu: "2"
+        requests:
+          memory: "2Gi"
+          cpu: "2"
+
+      features:
+        cache:
+          enable: true
+        cache_recommendations:
+          enable: false
+        risk_service_dump:
+          enable: false
+        ffc:
+          enable: false
+        skew_protection:
+          enable: true
+        icc_jobs:
+          enable: true
+
+      login_methods:
+        google:
+          enable: false
+          client_id: ""
+          client_secret: ""
+          valid_emails: ""
+        github:
+          enable: true
+          client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
+          client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
+          valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
+
+      log_level: info
+
+      secrets:
+        icc_session: "nqS4bQDlFNZfd1PtLwbkCDEgJiozzxRuyslNPtSSdeQ="
+        control_plane_keys: "iUIz122f2Kh49Q2PvGxJWuajJRm8B0TZ7orfGbf29LA="
+        user_manager_session: "XnlPIbATw2x/7xIX304esO9qKuCZLR3HOa8wTF6O3pc="
+
+      scaler:
+        algorithm_version: "v1"
+
+    machinist:
+      hotReload: true
+      localRepo: "{{ MACHINIST_REPO }}"
+
+      features:
+        event_export:
+          enable: false
+
+      log_level: debug

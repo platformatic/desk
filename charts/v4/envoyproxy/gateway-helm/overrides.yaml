@@ -1,0 +1,7 @@
+# Envoy Gateway defaults
+# The chart auto-creates a GatewayClass named "eg"
+config:
+  envoyGateway:
+    logging:
+      level:
+        default: info
