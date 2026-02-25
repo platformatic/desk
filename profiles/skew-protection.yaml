@@ -12,6 +12,11 @@ cluster:
 
   k3d:
     nodes: 1
+    args:
+      - "--k3s-arg=--disable=traefik@server:*"
+    gateway:
+      name: 'envoy'
+      enable: true
 
 dependencies:
   prometheus-community/prometheus-adapter:
@@ -22,8 +27,6 @@ dependencies:
     plt_defaults: true
   cloudpirates/valkey:
     plt_defaults: true
-  local/traefik:
-    plt_defaults: false
   envoyproxy/gateway-helm:
     plt_defaults: true
   local/gateway:

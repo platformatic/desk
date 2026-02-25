@@ -26,6 +26,11 @@ export default async function cli (argv) {
     }
   })
 
+  if (!args.profile) {
+    error('Missing --profile flag. Please specify a profile (e.g. --profile skew-protection)')
+    process.exit(1)
+  }
+
   const context = await loadContext(args.profile)
 
   if (!args.dir && !args.image) {
