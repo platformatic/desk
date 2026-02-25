@@ -2,5 +2,9 @@ gateway:
   name: platformatic
   namespace: platformatic
   gatewayClassName: eg
-  listener:
-    port: 80
+  listeners:
+    https:
+      port: 443
+      certificateRef: gw-tls
+    http:
+      port: 80
