@@ -57,6 +57,11 @@ platformatic:
           enable: false
         skew_protection:
           enable: true
+          auto_cleanup: true        # Clean up expired Deployments/Services automatically
+          grace_period_ms: 120000   # 2 minutes (instead of 24h default)
+          check_interval_ms: 10000  # 10 seconds (instead of 1 min default)
+          traffic_window_ms: 60000  # 1 minute (instead of 30 min default)
+          cookie_max_age: 43200     # 12h in seconds (keep default)
         icc_jobs:
           enable: true
 
