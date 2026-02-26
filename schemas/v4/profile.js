@@ -53,9 +53,10 @@ const K3dSchema = Type.Object({
 })
 
 const FeatureSchema = Type.Object({
-  features: Type.Optional(Type.Record(Type.String(), Type.Object({
-    enable: Type.Boolean()
-  })))
+  features: Type.Optional(Type.Record(Type.String(), Type.Intersect([
+    Type.Object({ enable: Type.Boolean() }),
+    Type.Record(Type.String(), Type.Unknown())
+  ])))
 })
 
 const LogLevelSchema = Type.Object({
