@@ -50,6 +50,8 @@ async function hasRequiredSoftware () {
 }
 
 hasRequiredSoftware().then(requirementsMet => {
-  if (requirementsMet) process.exit(0)
-  else process.exit(1)
+  if (!requirementsMet) {
+    info('\nWarning: some required tools are missing. Install them before running desk.')
+  }
+  process.exit(0)
 })
