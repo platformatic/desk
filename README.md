@@ -216,6 +216,16 @@ The `skew-protection` profile sets up a cluster with Envoy Gateway as a
 Gateway API controller, enabling ICC to manage HTTPRoute resources for
 version-aware request routing.
 
+First set the required environment variables in `.env`:
+
+```sh
+ICC_REPO=/path/to/icc3
+MACHINIST_REPO=/path/to/machinist
+WORKFLOW_REPO=/path/to/platformatic-world  # monorepo root, NOT packages/workflow
+```
+
+Then start the cluster:
+
 ```sh
 desk cluster up --profile skew-protection
 ```
@@ -225,6 +235,7 @@ This profile installs:
 - **Envoy Gateway** — provides the `eg` GatewayClass and runs the data plane
 - **Gateway resource** — a `platformatic` Gateway in the `platformatic` namespace
 - **Traefik** — for non-skew-protection routes (ICC dashboard, etc.)
+- **Workflow service** — durable workflow execution engine
 - ICC and Machinist with hot reload from local repositories
 
 After the cluster is up, deploy versioned applications:
@@ -236,6 +247,11 @@ desk deploy --profile skew-protection --dir ./my-app --version v2
 
 ICC will detect the new versions via pod labels and create HTTPRoute rules to
 route traffic to the correct version based on the `__plt_dpl` cookie.
+
+For workflow apps (apps with `WORKFLOW_TARGET_WORLD=@platformatic/world` in the
+Dockerfile), ICC automatically registers queue handlers with the workflow service
+and uses workflow-aware draining — keeping old versions alive until active
+workflows complete.
 
 ### Testing ICC Installation Script
 
