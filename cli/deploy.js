@@ -1,4 +1,5 @@
-import { resolve, sep, basename } from 'node:path'
+import { resolve, sep, basename, join } from 'node:path'
+import { readFile } from 'node:fs/promises'
 import minimist from 'minimist'
 import dotenv from 'dotenv'
 import { loadContext } from '../lib/context.js'
@@ -45,10 +46,23 @@ export default async function cli (argv) {
 
   let appImage = args.image
   let appName
+  let isWorkflow = false
   if (args.dir) {
     const directory = resolve(args.dir)
     appName = basename(directory).split(sep).pop()
     appImage = `plt.localreg/plt-local/${appName}:${Date.now()}`
+
+    // Detect workflow apps by checking if the Dockerfile sets WORKFLOW_TARGET_WORLD
+    // to @platformatic/world (our managed workflow service)
+    try {
+      const dockerfile = await readFile(join(directory, 'Dockerfile'), 'utf8')
+      if (/WORKFLOW_TARGET_WORLD\s*=\s*["']?@platformatic\/world["']?/.test(dockerfile)) {
+        isWorkflow = true
+      }
+    } catch {
+      // Dockerfile not found or unreadable — skip detection
+    }
+
     await registry.buildFromDirectory(directory, appImage)
   } else {
     appName = appImage.split(':')[0].split('/').pop()
@@ -69,8 +83,8 @@ export default async function cli (argv) {
 
   const version = args.version
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version })
-  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version })
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow })
+  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow })
 
   const gatewayConfig = context.cluster.provider.config.gateway
   const hasGatewayAPI = gatewayConfig?.enable === true && gatewayConfig?.name !== 'traefik'

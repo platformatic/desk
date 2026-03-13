@@ -21,6 +21,7 @@ const ResourcesSchema = Type.Object({
 const PlatformaticServiceSchema = Type.Object({
   hotReload: Type.Optional(Type.Boolean()),
   localRepo: Type.Optional(Type.String()),
+  workingDir: Type.Optional(Type.String()),
   image: Type.Optional(Type.Object({
     tag: Type.String(),
     repository: Type.String()
@@ -107,7 +108,12 @@ const PlatformaticHelmSchema = Type.Object({
       FeatureSchema,
       LogLevelSchema,
       PlatformaticServiceSchema
-    ])
+    ]),
+
+    workflow: Type.Optional(Type.Intersect([
+      LogLevelSchema,
+      PlatformaticServiceSchema
+    ]))
   })
 })
 
