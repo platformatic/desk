@@ -57,11 +57,14 @@ platformatic:
           enable: false
         skew_protection:
           enable: true
-          auto_cleanup: false       # Keep expired Deployments/Services for inspection
-          grace_period_ms: 600000   # 10 minutes (instead of 24h default)
-          check_interval_ms: 10000  # 10 seconds (instead of 1 min default)
-          traffic_window_ms: 60000  # 1 minute (instead of 30 min default)
-          cookie_max_age: 43200     # 12h in seconds (keep default)
+          auto_cleanup: false              # Keep expired Deployments/Services for inspection
+          http_grace_period_ms: 30000      # 30s for e2e testing
+          http_max_alive_ms: 180000        # 3 min for e2e testing
+          workflow_grace_period_ms: 60000  # 1 min for e2e testing
+          workflow_max_alive_ms: 300000    # 5 min for e2e testing
+          check_interval_ms: 10000         # 10 seconds
+          traffic_window_ms: 30000         # 30 seconds for e2e testing
+          cookie_max_age: 43200            # 12h in seconds (keep default)
         icc_jobs:
           enable: true
 
