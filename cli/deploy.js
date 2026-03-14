@@ -13,14 +13,15 @@ export const options = { command: 'deploy', strict: true }
 export default async function cli (argv) {
   const args = minimist(argv, {
     bool: ['dry-run'],
-    string: ['dir', 'image', 'namespace', 'envfile', 'profile', 'version'],
+    string: ['dir', 'image', 'namespace', 'envfile', 'profile', 'version', 'hostname'],
     alias: {
       dir: 'd',
       image: 'i',
       namespace: 'n',
       envfile: 'e',
       profile: 'p',
-      version: 'v'
+      version: 'v',
+      hostname: 'h'
     },
     default: {
       namespace: 'platformatic'
@@ -82,8 +83,9 @@ export default async function cli (argv) {
   }
 
   const version = args.version
+  const hostname = args.hostname
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow })
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname })
   await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow })
 
   const gatewayConfig = context.cluster.provider.config.gateway
@@ -94,15 +96,22 @@ export default async function cli (argv) {
     if (!args['dry-run']) {
       info('\nVersioned deployment creating. ICC will manage routing via Gateway API.')
       info(`App: ${appName}, Version: ${version}`)
+      if (hostname) {
+        info(`Application URL: https://${hostname}/`)
+      }
     }
   } else if (hasGatewayAPI) {
     // Profile uses Gateway API — create a basic HTTPRoute for the non-versioned deploy.
     // ICC will replace this HTTPRoute when the first versioned deploy arrives.
-    await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context })
+    await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context, hostname })
 
     if (!args['dry-run']) {
       info('\nApplication deploying. It may take some time to see it available.')
-      info(`Application URL: https://svcs.gw.plt/${appName}/`)
+      if (hostname) {
+        info(`Application URL: https://${hostname}/`)
+      } else {
+        info(`Application URL: https://svcs.gw.plt/${appName}/`)
+      }
     }
   } else {
     // Profile uses Traefik — add to IngressRoute

@@ -32,3 +32,23 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
+---
+# Workflow runs can take minutes (AI generation, webhooks, sleep steps).
+# Raise the default Envoy request timeout from 15s to 5 minutes.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: extended-timeout
+  namespace: {{ .Values.gateway.namespace }}
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ .Values.gateway.name }}
+  timeout:
+    http:
+      connectionIdleTimeout: 600s
+      maxConnectionDuration: 600s
+      requestTimeout: 300s
+    tcp:
+      connectTimeout: 10s
