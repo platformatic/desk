@@ -21,7 +21,7 @@ export default async function cli (argv) {
   const args = minimist(argv)
   const [cmd] = args._
 
-  if (cmd === 'list') {
+  if (!cmd || cmd === 'list') {
     try {
       const profilesDir = join(import.meta.dirname, '..', 'profiles')
       const files = await readdir(profilesDir)
