@@ -21,6 +21,11 @@ export default async function cli (argv) {
   })
   const [cmd] = args._
 
+  if (!args.profile) {
+    error('Missing --profile flag. Please specify a profile (e.g. --profile skew-protection)')
+    process.exit(1)
+  }
+
   const context = await loadContext(args.profile, { command: cmd })
   debug.extend('cluster')(context.cluster)
 

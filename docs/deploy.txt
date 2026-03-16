@@ -1,0 +1,15 @@
+Deploy a wattpro application into a cluster
+
+Usage:
+	desk deploy [flags]
+
+Flags:
+	-h, --help		Help with deploy commands
+	-p, --profile		Interact with a particular profile
+	-d, --dir		Path to application directory to build and deploy
+	-i, --image		Pre-built container image to deploy
+	-n, --namespace		Kubernetes namespace (default: platformatic)
+	-e, --envfile		Path to .env file with environment variables
+	-v, --version		Version label for the deployment
+	    --hostname		Hostname for per-app routing
+	    --dry-run		Preview the deployment without applying

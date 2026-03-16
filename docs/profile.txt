@@ -1,0 +1,10 @@
+Profile management
+
+Usage:
+	desk profile [command]
+
+Available commands:
+	list		List available profiles (default)
+
+Flags:
+	-h, --help	Help with profile commands
