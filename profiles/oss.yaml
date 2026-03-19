@@ -12,6 +12,11 @@ cluster:
   # This is the cluster provider key
   k3d:
     nodes: 1
+    args:
+      - "--k3s-arg=--disable=traefik@server:*"
+    gateway:
+      name: 'envoy'
+      enable: true
 
 # Define the charts to be installed in your cluster
 dependencies:
@@ -25,8 +30,13 @@ dependencies:
     plt_defaults: true
   cloudpirates/valkey:
     plt_defaults: true
-  local/traefik:
-    plt_defaults: false
+  envoyproxy/gateway-helm:
+    plt_defaults: true
+  local/gateway:
+    plt_defaults: true
+  # Traefik is disabled — using Envoy Gateway for skew protection
+  # local/traefik:
+  #   plt_defaults: false
   # Uncomment to enable Kafka (optional)
   # local/kafka:
   #   plt_defaults: true
@@ -43,8 +53,16 @@ platformatic:
     icc:
       # Remote image through local registry cache
       image:
-        tag: "latest"
+        tag: "v3.6.0"
         repository: "platformatic/intelligent-command-center"
+
+      resources:
+        limits:
+          memory: "4Gi"
+          cpu: "2"
+        requests:
+          memory: "2Gi"
+          cpu: "2"
 
       features:
         cache_recommendations:
@@ -53,6 +71,8 @@ platformatic:
           enable: false
         ffc:
           enable: false
+        skew_protection:
+          enable: true
         icc_jobs:
           enable: true
 
@@ -81,11 +101,18 @@ platformatic:
 
     machinist:
       image:
-        tag: "latest"
+        tag: "v2.1.1"
         repository: "platformatic/machinist"
 
       features:
         event_export:
           enable: false
+
+      log_level: info
+
+    workflow:
+      image:
+        tag: "latest"
+        repository: "platformatic/workflow"
 
       log_level: info

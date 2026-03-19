@@ -64,6 +64,8 @@ dependencies:
     location: './local/gateway'
     releaseName: 'local-gateway'
     namespace: 'platformatic'
+    dependsOn:
+      - envoyproxy/gateway-helm
 
   local/kafka:
     location: './local/kafka'
