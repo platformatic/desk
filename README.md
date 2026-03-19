@@ -174,6 +174,22 @@ When `--version` / `-v` is provided, the Deployment and Service are named
 IngressRoute is created — traffic routes through Gateway API HTTPRoutes managed
 by ICC.
 
+Deploy with a dedicated hostname:
+
+```sh
+desk deploy --profile skew-protection --dir ./my-app --version v1 --hostname my-app.plt
+```
+
+When `--hostname` is provided, ICC creates an HTTPRoute with `hostnames: ["my-app.plt"]`
+and a `/` path prefix instead of the default `hostnames: ["svcs.gw.plt"]` with `/<app-name>`.
+This is required for frameworks like Next.js that make root-relative fetch calls
+(e.g., `fetch('/api/generate')`) which break under a sub-path. Add the hostname to
+`/etc/hosts` to resolve it locally:
+
+```sh
+echo "127.0.0.1 my-app.plt" | sudo tee -a /etc/hosts
+```
+
 Deploy with an environment file:
 
 > [!WARNING]
