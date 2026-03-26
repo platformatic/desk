@@ -1,3 +1,0 @@
-imagePaths:
-  - repository: ['global', 'images', 'envoyGateway', 'image']
-  - repository: ['global', 'images', 'ratelimit', 'image']

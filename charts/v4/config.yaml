@@ -10,14 +10,12 @@ cluster:
     args:
       - "--k3s-arg=--kubelet-arg=eviction-hard=imagefs.available<1%,nodefs.available<1%@server:*"
       - "--k3s-arg=--kubelet-arg=eviction-minimum-reclaim=imagefs.available=1%,nodefs.available=1%@server:*"
+      - "--k3s-arg=--disable=traefik@server:*"
     registry:
       name: "plt-registry"
       address: "k3d-plt-registry:5000"
       # Relative to charts version path
       configPath: "k3d/registry.yaml"
-    gateway:
-      enable: true
-      name: 'traefik'
 
 # Define which charts are used
 # Each chart should have a folder path with the following files:
@@ -54,16 +52,13 @@ dependencies:
     location: 'oci://registry-1.docker.io/envoyproxy/gateway-helm'
     releaseName: 'envoy-gateway'
     version: '1.4.2'
-
-  local/traefik:
-    location: './local/traefik'
-    releaseName: 'local-traefik'
-    namespace: 'platformatic'
+    default: true
 
   local/gateway:
     location: './local/gateway'
     releaseName: 'local-gateway'
     namespace: 'platformatic'
+    default: true
     dependsOn:
       - envoyproxy/gateway-helm
 
