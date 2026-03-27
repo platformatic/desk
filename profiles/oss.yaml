@@ -12,11 +12,6 @@ cluster:
   # This is the cluster provider key
   k3d:
     nodes: 1
-    args:
-      - "--k3s-arg=--disable=traefik@server:*"
-    gateway:
-      name: 'envoy'
-      enable: true
 
 # Define the charts to be installed in your cluster
 dependencies:
@@ -30,13 +25,6 @@ dependencies:
     plt_defaults: true
   cloudpirates/valkey:
     plt_defaults: true
-  envoyproxy/gateway-helm:
-    plt_defaults: true
-  local/gateway:
-    plt_defaults: true
-  # Traefik is disabled — using Envoy Gateway for skew protection
-  # local/traefik:
-  #   plt_defaults: false
   # Uncomment to enable Kafka (optional)
   # local/kafka:
   #   plt_defaults: true

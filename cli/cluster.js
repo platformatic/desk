@@ -43,10 +43,6 @@ export default async function cli (argv) {
 
     info('Starting cluster')
     await startCluster(context.cluster, { context })
-    if (context.cluster.provider.config.gateway.enable) {
-      const { checkResources } = await import(`../lib/cluster/${context.cluster.provider.config.gateway.name}.js`)
-      await checkResources({ context })
-    }
 
     if (Object.keys(context.dependencies || {}).length > 0) {
       await installInfra(context.dependencies, { context })

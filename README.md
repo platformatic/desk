@@ -149,9 +149,6 @@ desk deploy --profile <name> --dir ./my-watt-project
 
 Deploy an existing image into Kubernetes:
 
-> [!WARNING]
-> Not implemented yet
-
 ```sh
 desk deploy --profile <name> --image some-prebuilt-app:latest
 ```
@@ -170,9 +167,8 @@ desk deploy --profile skew-protection --dir ./my-watt-project --version v2
 
 When `--version` / `-v` is provided, the Deployment and Service are named
 `{app}-{version}` (e.g., `my-watt-project-v1`) and labelled with
-`app.kubernetes.io/name: my-watt-project` and `plt.dev/version: v1`. No Traefik
-IngressRoute is created — traffic routes through Gateway API HTTPRoutes managed
-by ICC.
+`app.kubernetes.io/name: my-watt-project` and `plt.dev/version: v1`. Traffic
+routes through Gateway API HTTPRoutes managed by ICC.
 
 Deploy with a dedicated hostname:
 
@@ -250,7 +246,6 @@ This profile installs:
 - All base dependencies (Prometheus, Postgres, Valkey)
 - **Envoy Gateway** — provides the `eg` GatewayClass and runs the data plane
 - **Gateway resource** — a `platformatic` Gateway in the `platformatic` namespace
-- **Traefik** — for non-skew-protection routes (ICC dashboard, etc.)
 - **Workflow service** — durable workflow execution engine
 - ICC and Machinist with hot reload from local repositories
 

@@ -1,4 +1,0 @@
-mirrors:
-  "*":
-    endpoint:
-      - "http://k3d-plt-registry:5000"

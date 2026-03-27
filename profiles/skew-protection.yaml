@@ -1,10 +1,9 @@
 version: 4
 
 description: |
-  Skew protection testing profile. Installs Envoy Gateway as the Gateway API
-  controller and creates a Gateway resource so ICC can manage HTTPRoute rules
-  for version-aware request routing. ICC and Machinist run with hot reload
-  from local repositories.
+  Skew protection testing profile. ICC manages HTTPRoute rules for
+  version-aware request routing via Envoy Gateway. ICC, Machinist, and
+  Workflow run with hot reload from local repositories.
 
 cluster:
   namespaces:
@@ -12,11 +11,6 @@ cluster:
 
   k3d:
     nodes: 1
-    args:
-      - "--k3s-arg=--disable=traefik@server:*"
-    gateway:
-      name: 'envoy'
-      enable: true
 
 dependencies:
   prometheus-community/prometheus-adapter:
@@ -26,10 +20,6 @@ dependencies:
   cloudpirates/postgres:
     plt_defaults: true
   cloudpirates/valkey:
-    plt_defaults: true
-  envoyproxy/gateway-helm:
-    plt_defaults: true
-  local/gateway:
     plt_defaults: true
 
 platformatic:

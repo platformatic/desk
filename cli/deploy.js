@@ -88,9 +88,6 @@ export default async function cli (argv) {
   await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname })
   await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow })
 
-  const gatewayConfig = context.cluster.provider.config.gateway
-  const hasGatewayAPI = gatewayConfig?.enable === true && gatewayConfig?.name !== 'traefik'
-
   if (version) {
     // Versioned deploys route through Gateway API HTTPRoutes managed by ICC
     if (!args['dry-run']) {
@@ -100,8 +97,8 @@ export default async function cli (argv) {
         info(`Application URL: https://${hostname}/`)
       }
     }
-  } else if (hasGatewayAPI) {
-    // Profile uses Gateway API — create a basic HTTPRoute for the non-versioned deploy.
+  } else {
+    // Create a basic HTTPRoute for the non-versioned deploy.
     // ICC will replace this HTTPRoute when the first versioned deploy arrives.
     await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context, hostname })
 
@@ -112,15 +109,6 @@ export default async function cli (argv) {
       } else {
         info(`Application URL: https://svcs.gw.plt/${appName}/`)
       }
-    }
-  } else {
-    // Profile uses Traefik — add to IngressRoute
-    await deploy.addToIngress(appName, appName, args.namespace, args['dry-run'], { context })
-    await deploy.updateTraefikMiddleware(appName, args.namespace, args['dry-run'], { context })
-
-    if (!args['dry-run']) {
-      info('\nApplication deploying. It may take some time to see it available.')
-      info(`Application URL: https://svcs.gw.plt/${appName}/`)
     }
   }
 }

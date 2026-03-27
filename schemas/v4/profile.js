@@ -40,17 +40,11 @@ const K3dRegistry = Type.Object({
   name: Type.String()
 })
 
-const GatewaySchema = Type.Object({
-  name: Type.String(),
-  enable: Type.Boolean({ default: true })
-})
-
 const K3dSchema = Type.Object({
   ports: Type.Optional(Type.Array(Type.Number())),
   args: Type.Optional(Type.Array(Type.String())),
   registry: Type.Optional(K3dRegistry),
-  nodes: Type.Optional(Type.Number()),
-  gateway: Type.Optional(GatewaySchema)
+  nodes: Type.Optional(Type.Number())
 })
 
 const FeatureSchema = Type.Object({

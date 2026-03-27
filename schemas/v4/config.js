@@ -14,7 +14,8 @@ const Chart = Type.Object({
   releaseName: Type.String(),
   version: Type.Optional(Type.String()),
   namespace: Type.Optional(Type.String()),
-  dependsOn: Type.Optional(Type.Array(Type.String()))
+  dependsOn: Type.Optional(Type.Array(Type.String())),
+  default: Type.Optional(Type.Boolean())
 })
 
 const K3dRegistry = Type.Object({
@@ -23,17 +24,11 @@ const K3dRegistry = Type.Object({
   name: Type.String()
 })
 
-const GatewaySchema = Type.Object({
-  name: Type.String(),
-  enable: Type.Boolean({ default: true })
-})
-
 const K3dConfig = Type.Object({
   ports: Type.Optional(Type.Array(Type.Number(), { default: [443] })),
   args: Type.Optional(Type.Array(Type.String(), { default: [] })),
   registry: Type.Optional(K3dRegistry),
-  nodes: Type.Optional(Type.Number({ default: 1 })),
-  gateway: Type.Optional(GatewaySchema)
+  nodes: Type.Optional(Type.Number({ default: 1 }))
 })
 
 const ClusterConfig = Type.Object({
