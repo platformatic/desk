@@ -704,15 +704,15 @@ prometheus:
     podMonitorSelectorNilUsesHelmValues: false
 
     ruleSelector:
-      matchLabels: null
+      matchLabels: {}
     serviceMonitorSelector:
-      matchLabels: null
+      matchLabels: {}
     podMonitorSelector:
-      matchLabels: null
+      matchLabels: {}
     probeSelector:
-      matchLabels: null
+      matchLabels: {}
     scrapeConfigSelector:
-      matchLabels: null
+      matchLabels: {}
 
     retention: 10d
     tsdb:
