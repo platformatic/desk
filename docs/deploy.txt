@@ -12,4 +12,8 @@ Flags:
 	-e, --envfile		Path to .env file with environment variables
 	-v, --version		Version label for the deployment
 	    --hostname		Hostname for per-app routing
+	    --headless		Deploy as a headless service (no gateway route, direct pod IPs via DNS)
+	    --replicas		Number of replicas (sets both min and max)
+	    --min-replicas		Minimum number of replicas for autoscaling
+	    --max-replicas		Maximum number of replicas for autoscaling
 	    --dry-run		Preview the deployment without applying

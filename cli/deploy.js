@@ -12,8 +12,19 @@ export const options = { command: 'deploy', strict: true }
 
 export default async function cli (argv) {
   const args = minimist(argv, {
-    bool: ['dry-run'],
-    string: ['dir', 'image', 'namespace', 'envfile', 'profile', 'version', 'hostname'],
+    bool: ['dry-run', 'headless'],
+    string: [
+      'dir',
+      'image',
+      'namespace',
+      'envfile',
+      'profile',
+      'version',
+      'hostname',
+      'replicas',
+      'min-replicas',
+      'max-replicas'
+    ],
     alias: {
       dir: 'd',
       image: 'i',
@@ -85,10 +96,31 @@ export default async function cli (argv) {
   const version = args.version
   const hostname = args.hostname
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname })
-  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow })
+  let minReplicas
+  let maxReplicas
 
-  if (version) {
+  if (args.replicas) {
+    const replicas = parseInt(args.replicas, 10)
+    minReplicas = replicas
+    maxReplicas = replicas
+  } else {
+    if (args['min-replicas']) {
+      minReplicas = parseInt(args['min-replicas'], 10)
+    }
+    if (args['max-replicas']) {
+      maxReplicas = parseInt(args['max-replicas'], 10)
+    }
+  }
+  
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
+  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
+
+  if (args.headless) {
+    if (!args['dry-run']) {
+      info('\nHeadless service deploying. No gateway route will be created.')
+      info(`DNS: ${appName}.${args.namespace}.svc.cluster.local`)
+    }
+  } else if (version) {
     // Versioned deploys route through Gateway API HTTPRoutes managed by ICC
     if (!args['dry-run']) {
       info('\nVersioned deployment creating. ICC will manage routing via Gateway API.')
