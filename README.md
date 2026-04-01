@@ -186,6 +186,30 @@ This is required for frameworks like Next.js that make root-relative fetch calls
 echo "127.0.0.1 my-app.plt" | sudo tee -a /etc/hosts
 ```
 
+Deploy as a headless service (direct pod IPs via DNS, no gateway route):
+
+```sh
+desk deploy --profile <name> --dir ./my-app --headless
+```
+
+Deploy with a fixed number of replicas:
+
+```sh
+desk deploy --profile <name> --dir ./my-app --replicas 3
+```
+
+Deploy with autoscaling (ICC scaler manages replicas within the range):
+
+```sh
+desk deploy --profile <name> --dir ./my-app --min-replicas 2 --max-replicas 5
+```
+
+When `--replicas` is provided, both `icc.platformatic.dev/scaler-min` and
+`icc.platformatic.dev/scaler-max` pod labels are set to the same value.
+`--min-replicas` and `--max-replicas` allow setting them independently.
+The Deployment's `spec.replicas` is set to the min value for immediate scaling
+on the initial deploy.
+
 Deploy with an environment file:
 
 > [!WARNING]
