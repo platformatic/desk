@@ -38,6 +38,11 @@ dependencies:
     releaseName: 'valkey'
     version: '0.3.2'
 
+  cloudpirates/valkey-regina:
+    location: 'oci://registry-1.docker.io/cloudpirates/valkey'
+    releaseName: 'valkey-regina'
+    version: '0.3.2'
+
   prometheus-community/kube-prometheus-stack:
     repo: 'https://prometheus-community.github.io/helm-charts'
     releaseName: 'prometheus'
