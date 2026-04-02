@@ -93,6 +93,10 @@ export default async function cli (argv) {
     envVars.KAFKA_CONNECTION_STRING = clusterStatus.kafka.connectionString
   }
 
+  if (clusterStatus.valkeyRegina?.connectionString) {
+    envVars.REGINA_VALKEY_CONNECTION_STRING = clusterStatus.valkeyRegina.connectionString
+  }
+
   const version = args.version
   const hostname = args.hostname
 
