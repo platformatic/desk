@@ -1,6 +1,7 @@
-Tool verification
+Tool and kernel verification
 
-Checks if all required external tools are installed on your system.
+Checks if all required external tools are installed and verifies kernel
+support for optional features like the eBPF sandbox.
 
 Usage:
 	desk doctor
@@ -11,5 +12,13 @@ Required tools:
 	kubectl		Kubernetes CLI
 	helm		Kubernetes package manager
 
+Kernel checks:
+	BPF LSM		Required for the eBPF sandbox DaemonSet
+
 The command will display the status and version of each tool, along with
-installation instructions for any missing tools.
+installation instructions for any missing tools. Kernel checks are shown
+as warnings and do not cause the command to fail, since the eBPF sandbox
+is optional.
+
+If BPF LSM is not available, see docs/macos-ebpf-lima.md for instructions
+on running the eBPF sandbox on macOS using Lima.
