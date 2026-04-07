@@ -107,6 +107,14 @@ const PlatformaticHelmSchema = Type.Object({
     workflow: Type.Optional(Type.Intersect([
       LogLevelSchema,
       PlatformaticServiceSchema
+    ])),
+
+    ebpfSandbox: Type.Optional(Type.Intersect([
+      LogLevelSchema,
+      PlatformaticServiceSchema,
+      Type.Object({
+        disableEBPFPolicies: Type.Optional(Type.Boolean({ default: false }))
+      })
     ]))
   })
 })

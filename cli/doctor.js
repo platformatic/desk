@@ -1,5 +1,6 @@
-import { verifyTools } from '../lib/doctor.js'
-import { info, error } from '../lib/utils.js'
+import pc from 'picocolors'
+import { verifyTools, checkEbpfSandboxSupport } from '../lib/doctor.js'
+import { info, error, warn } from '../lib/utils.js'
 
 export const options = { command: 'doctor', strict: true }
 
@@ -8,6 +9,14 @@ export default async function cli () {
 
   const { output, allInstalled } = await verifyTools()
   info(output)
+
+  info('\nChecking kernel support...\n')
+  const ebpf = await checkEbpfSandboxSupport()
+  if (ebpf.supported) {
+    info(`${pc.green('\u2713')} ${ebpf.name}`)
+  } else {
+    warn(`${pc.yellow('!')} ${ebpf.name} ${pc.dim(`- ${ebpf.reason}`)}`)
+  }
 
   if (allInstalled) {
     info('\nAll required tools are installed.')
