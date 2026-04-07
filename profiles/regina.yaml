@@ -84,4 +84,5 @@ platformatic:
     ebpfSandbox:
       hotReload: true
       localRepo: "{{ EBPF_SANDBOX_REPO }}"
+      disableEBPFPolicies: true
       log_level: debug
