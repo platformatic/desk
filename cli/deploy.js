@@ -117,7 +117,8 @@ export default async function cli (argv) {
     }
   }
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
+  const ebpfSandbox = !!context.platformatic?.services?.ebpfSandbox
+  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas, ebpfSandbox })
   await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
 
   if (args.headless) {
