@@ -210,6 +210,19 @@ When `--replicas` is provided, both `icc.platformatic.dev/scaler-min` and
 The Deployment's `spec.replicas` is set to the min value for immediate scaling
 on the initial deploy.
 
+Deploy with a custom `.npmrc` for private npm packages:
+
+```sh
+desk deploy --profile <name> --dir ./my-app --npmrc ./project/.npmrc
+```
+
+By default, `~/.npmrc` is used if it exists. The Dockerfile must mount the
+secret during install:
+
+```dockerfile
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install
+```
+
 Deploy with an environment file:
 
 > [!WARNING]
