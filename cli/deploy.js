@@ -23,7 +23,8 @@ export default async function cli (argv) {
       'hostname',
       'replicas',
       'min-replicas',
-      'max-replicas'
+      'max-replicas',
+      'npmrc'
     ],
     alias: {
       dir: 'd',
@@ -75,7 +76,7 @@ export default async function cli (argv) {
       // Dockerfile not found or unreadable — skip detection
     }
 
-    await registry.buildFromDirectory(directory, appImage)
+    await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc })
   } else {
     appName = appImage.split(':')[0].split('/').pop()
   }
@@ -115,7 +116,7 @@ export default async function cli (argv) {
       maxReplicas = parseInt(args['max-replicas'], 10)
     }
   }
-  
+
   await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
   await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
 
