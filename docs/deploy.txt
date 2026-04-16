@@ -16,4 +16,34 @@ Flags:
 	    --replicas		Number of replicas (sets both min and max)
 	    --min-replicas		Minimum number of replicas for autoscaling
 	    --max-replicas		Maximum number of replicas for autoscaling
+	    --npmrc		Path to .npmrc file for Docker build (default: ~/.npmrc)
 	    --dry-run		Preview the deployment without applying
+
+Examples:
+	# Deploy from a local directory
+	desk deploy -p development -d ./my-app
+
+	# Deploy a pre-built image
+	desk deploy -p development -i registry.example.com/my-app:latest
+
+	# Deploy with environment variables from a file
+	desk deploy -p development -d ./my-app -e .env
+
+	# Deploy with a custom .npmrc for private packages
+	desk deploy -p development -d ./my-app --npmrc ./project/.npmrc
+
+	  The Dockerfile must mount the secret during npm install:
+
+	    RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install
+
+	# Deploy a specific version with a custom hostname
+	desk deploy -p development -d ./my-app -v 1.2.0 --hostname myapp.example.com
+
+	# Deploy as a headless service (no gateway route, direct DNS access)
+	desk deploy -p development -d ./my-app --headless
+
+	# Set a fixed number of replicas
+	desk deploy -p development -d ./my-app --replicas 3
+
+	# Preview deployment without applying
+	desk deploy -p development -d ./my-app --dry-run
