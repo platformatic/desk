@@ -241,11 +241,41 @@ to:
 
 ## Examples
 
+### Building local repositories (hot reload)
+
+The hot-reload profiles (`development` and `skew-protection`) mount your local
+ICC / Machinist / Workflow repositories into the cluster and run them with
+`pnpm run dev`. Clone the ones the profile uses and point the matching `.env`
+variable at each checkout (all repos are public):
+
+| Variable | Clone URL |
+|----------|-----------|
+| `ICC_REPO` | `https://github.com/platformatic/intelligent-command-center.git` |
+| `MACHINIST_REPO` | `https://github.com/platformatic/machinist.git` |
+| `WORKFLOW_REPO` | `https://github.com/platformatic/platformatic-world.git` |
+
+`WORKFLOW_REPO` must point to the **`platformatic-world` monorepo root**, not
+`packages/workflow`: desk mounts the repo at `/app` and runs the workflow service
+from `/app/packages/workflow`.
+
+Some ICC services (e.g. `cluster-manager`) `require()` compiled `.js` files that
+only exist as TypeScript in a fresh checkout, so before starting a hot-reload
+profile, build the ICC repo once:
+
+```sh
+cd "$ICC_REPO"
+npm run build:dev
+```
+
+Machinist and Workflow do not need a build step — they run from source under
+Node's type stripping.
+
 ### Development Profile
 
 The `development` profile enables hot reloading for ICC and Machinist services using local repositories.
 
-First uncomment/set the `ICC_REPO` and `MACHINIST_REPO` variables on `.env`, then:
+First uncomment/set the `ICC_REPO` and `MACHINIST_REPO` variables on `.env`, and
+[build the local repos](#building-local-repositories-hot-reload), then:
 
 ```sh
 desk cluster up --profile development
@@ -268,12 +298,14 @@ version-aware request routing.
 First set the required environment variables in `.env`:
 
 ```sh
-ICC_REPO=/path/to/icc3
+ICC_REPO=/path/to/intelligent-command-center
 MACHINIST_REPO=/path/to/machinist
 WORKFLOW_REPO=/path/to/platformatic-world  # monorepo root, NOT packages/workflow
 ```
 
-Then start the cluster:
+This profile is an extension of `development` — it also runs ICC, Machinist, and
+Workflow with hot reload, so [build the local repos](#building-local-repositories-hot-reload)
+first (`cd "$ICC_REPO" && npm run build:dev`). Then start the cluster:
 
 ```sh
 desk cluster up --profile skew-protection
