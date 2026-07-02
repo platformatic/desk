@@ -6,13 +6,14 @@ import { loadContext } from '../lib/context.js'
 import { error, info } from '../lib/utils.js'
 import * as registry from '../lib/registry.js'
 import * as deploy from '../lib/deploy.js'
+import { deployViaIcc, handleIccDeploy } from '../lib/icc.js'
 import { getClusterStatus } from '../lib/cluster/index.js'
 
 export const options = { command: 'deploy', strict: true }
 
 export default async function cli (argv) {
   const args = minimist(argv, {
-    bool: ['dry-run', 'headless'],
+    bool: ['dry-run', 'headless', 'via-icc'],
     string: [
       'dir',
       'image',
@@ -24,7 +25,10 @@ export default async function cli (argv) {
       'replicas',
       'min-replicas',
       'max-replicas',
-      'npmrc'
+      'npmrc',
+      'app-id',
+      'deploy-token',
+      'icc-url'
     ],
     alias: {
       dir: 'd',
@@ -36,7 +40,8 @@ export default async function cli (argv) {
       hostname: 'h'
     },
     default: {
-      namespace: 'platformatic'
+      namespace: 'platformatic',
+      'icc-url': 'https://icc.plt'
     }
   })
 
@@ -115,6 +120,35 @@ export default async function cli (argv) {
     if (args['max-replicas']) {
       maxReplicas = parseInt(args['max-replicas'], 10)
     }
+  }
+
+  // ICC-driven deploy: hand the image to ICC's deploy API and let the app's
+  // actuation mode decide (manage = ICC creates the workload; advise = ICC
+  // returns manifests that desk applies). This is the CI path a customer uses,
+  // and the way to exercise manage/advise modes end to end.
+  if (args['via-icc']) {
+    const appId = args['app-id']
+    const token = args['deploy-token'] || process.env.PLT_DEPLOY_TOKEN
+    if (!appId) { error('--via-icc requires --app-id <ICC application id>'); process.exit(1) }
+    if (!token) { error('--via-icc requires --deploy-token <plt_deploy_...> or PLT_DEPLOY_TOKEN'); process.exit(1) }
+    if (!version) { error('--via-icc requires --version <label>'); process.exit(1) }
+
+    info(`\nDeploying ${appName}:${version} through ICC (${args['icc-url']}) with image ${appImage}`)
+    const result = await deployViaIcc({
+      iccUrl: args['icc-url'],
+      appId,
+      token,
+      image: appImage,
+      version,
+      hostname,
+      namespace: args.namespace,
+      minReplicas,
+      maxReplicas,
+      env: Object.keys(envVars).length ? envVars : undefined
+    })
+    info(`ICC actuation mode: ${result.mode}`)
+    await handleIccDeploy(context, args.namespace, result, args['dry-run'])
+    return
   }
 
   await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })

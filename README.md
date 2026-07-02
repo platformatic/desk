@@ -232,6 +232,40 @@ Deploy with an environment file:
 desk deploy --profile <name> --dir ./my-watt-project --envfile ./my-watt-project/.env
 ```
 
+#### Deploy through ICC's deploy API (`--via-icc`)
+
+By default `desk` templates the Deployment + Service and applies them directly
+(the skew-protection `observe` model: you create the workload, ICC manages
+routing). Use `--via-icc` to instead drive the deploy through ICC's deploy API,
+which lets you exercise the `manage` and `advise` actuation modes:
+
+```sh
+desk deploy --profile skew-protection --via-icc \
+  --app-id <ICC application id> --deploy-token plt_deploy_... \
+  --image <pre-existing image> --version v1 --min-replicas 1
+```
+
+What happens depends on the app's mode (Settings → Skew Protection → Mode):
+
+* `manage` — ICC creates the Deployment + Service itself; `desk` applies nothing.
+* `advise` — ICC returns the manifests as a plan and `desk` applies them with
+  `kubectl` (use `--dry-run` to print the plan without applying).
+* `observe` — ICC rejects the deploy API (this is the default direct path above).
+
+Flags:
+
+* `--app-id` — the ICC application UUID (from the app URL `…/watts/<id>`). Required.
+* `--deploy-token` — a scoped deploy token (`plt_deploy_…`), or set
+  `PLT_DEPLOY_TOKEN`. Mint one in the app's Settings → Deploy Tokens. Required.
+* `--icc-url` — ICC base URL (default `https://icc.plt`). TLS verification is
+  disabled for this call (local self-signed cert); for local testing only.
+
+`--via-icc` still builds/pushes the image when `--dir` is used; the image must
+exist before ICC can reference it (`--image <ref>` for a prebuilt one). `manage`
+mode also requires the `plt-pod-manager` RBAC to create Deployments/Services
+(shipped in the helm chart; run `helm upgrade`). See
+`skew-protection/TESTING.md` for the full manual test walkthrough.
+
 ## Troubleshooting
 
 Use `DEBUG=plt-desk*` to view debug statements. The output can be narrowed down
