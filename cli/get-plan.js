@@ -27,10 +27,12 @@ export default async function cli (argv) {
 
   const context = await loadContext(args.profile)
 
+  // --app-id is optional: with a deploy token ICC resolves the application from
+  // the token, so a CI needs only the token. Pass --app-id for the app-scoped
+  // route (e.g. an admin cookie, or to be explicit).
   const appId = args['app-id']
   const token = args['deploy-token'] || process.env.PLT_DEPLOY_TOKEN
   const version = args.version
-  if (!appId) { error('get-plan requires --app-id <ICC application id>'); process.exit(1) }
   if (!token) { error('get-plan requires --deploy-token <plt_deploy_...> or PLT_DEPLOY_TOKEN'); process.exit(1) }
   if (!version) { error('get-plan requires --version <label>'); process.exit(1) }
 

@@ -242,9 +242,14 @@ which lets you exercise the `manage` and `advise` actuation modes:
 
 ```sh
 desk deploy --profile skew-protection --via-icc \
-  --app-id <ICC application id> --deploy-token plt_deploy_... \
+  --deploy-token plt_deploy_... \
   --image <pre-existing image> --version v1 --min-replicas 1
 ```
+
+The deploy token is app-bound, so ICC resolves the application from the token --
+a CI needs only the token, image, and version, never the application UUID. Pass
+`--app-id <id>` to force the app-scoped route instead (e.g. when driving it with
+an admin cookie).
 
 What happens depends on the app's mode (Settings → Skew Protection → Mode):
 
@@ -257,9 +262,11 @@ What happens depends on the app's mode (Settings → Skew Protection → Mode):
 
 Flags:
 
-* `--app-id` — the ICC application UUID (from the app URL `…/watts/<id>`). Required.
 * `--deploy-token` — a scoped deploy token (`plt_deploy_…`), or set
   `PLT_DEPLOY_TOKEN`. Mint one in the app's Settings → Deploy Tokens. Required.
+* `--app-id` — the ICC application UUID (from the app URL `…/watts/<id>`).
+  Optional: the token already identifies the app; pass it only to force the
+  app-scoped route.
 * `--icc-url` — ICC base URL (default `https://icc.plt`). TLS verification is
   disabled for this call (local self-signed cert); for local testing only.
 
@@ -280,7 +287,7 @@ Plan a new version's deploy (Deployment + Service + HTTPRoute):
 
 ```sh
 desk get-plan --profile skew-protection \
-  --app-id <ICC application id> --deploy-token plt_deploy_... \
+  --deploy-token plt_deploy_... \
   --image <pre-existing image> --version v9
 ```
 
@@ -291,7 +298,7 @@ makes it the gateway default), a `draining` version yields an *expire* plan
 
 ```sh
 desk get-plan --profile skew-protection \
-  --app-id <ICC application id> --deploy-token plt_deploy_... \
+  --deploy-token plt_deploy_... \
   --version v8
 ```
 
@@ -311,10 +318,11 @@ Apply it yourself with kubectl:
 Once you apply it, ICC observes the change and moves the version on its own
 (`pending-apply -> active`, or `draining -> expired`).
 
-Flags are the same `--app-id` / `--deploy-token` / `--icc-url` as
-`deploy --via-icc` (the deploy token is route-allowlisted to the read-only plan
-endpoints). With `--image` the plan is a new deploy; without it, the plan comes
-from the existing version's current state.
+Flags are the same `--deploy-token` / `--icc-url` (and optional `--app-id`) as
+`deploy --via-icc`: the token is app-bound, so ICC resolves the application from
+it and `--app-id` is optional (the deploy token is route-allowlisted to the
+read-only plan endpoints). With `--image` the plan is a new deploy; without it,
+the plan comes from the existing version's current state.
 
 ## Troubleshooting
 

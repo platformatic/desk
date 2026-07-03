@@ -127,9 +127,11 @@ export default async function cli (argv) {
   // returns manifests that desk applies). This is the CI path a customer uses,
   // and the way to exercise manage/advise modes end to end.
   if (args['via-icc']) {
+    // --app-id is optional: with a deploy token ICC resolves the application from
+    // the token (the CI needs only the token). Pass --app-id to force the
+    // app-scoped route.
     const appId = args['app-id']
     const token = args['deploy-token'] || process.env.PLT_DEPLOY_TOKEN
-    if (!appId) { error('--via-icc requires --app-id <ICC application id>'); process.exit(1) }
     if (!token) { error('--via-icc requires --deploy-token <plt_deploy_...> or PLT_DEPLOY_TOKEN'); process.exit(1) }
     if (!version) { error('--via-icc requires --version <label>'); process.exit(1) }
 
