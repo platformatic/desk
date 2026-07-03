@@ -284,7 +284,7 @@ desk get-plan --profile skew-protection \
   --image <pre-existing image> --version v9
 ```
 
-Plan an existing version's next actuation — the intent follows the version's
+Plan an existing version's next actuation -- the intent follows the version's
 state: a `pending-apply` version yields an *activate* plan (the HTTPRoute that
 makes it the gateway default), a `draining` version yields an *expire* plan
 (rebuild the route without it, scale its workload to zero):
@@ -309,7 +309,7 @@ Apply it yourself with kubectl:
 ```
 
 Once you apply it, ICC observes the change and moves the version on its own
-(`pending-apply → active`, or `draining → expired`).
+(`pending-apply -> active`, or `draining -> expired`).
 
 Flags are the same `--app-id` / `--deploy-token` / `--icc-url` as
 `deploy --via-icc` (the deploy token is route-allowlisted to the read-only plan
