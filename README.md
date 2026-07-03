@@ -13,6 +13,7 @@ Contents:
     * [`doctor`](#doctor)
     * [`profile`](#profile)
     * [`deploy`](#deploy)
+    * [`get-plan`](#get-plan)
 * [Troubleshooting](#troubleshooting)
 * [Examples](#examples)
 
@@ -241,22 +242,31 @@ which lets you exercise the `manage` and `advise` actuation modes:
 
 ```sh
 desk deploy --profile skew-protection --via-icc \
-  --app-id <ICC application id> --deploy-token plt_deploy_... \
+  --deploy-token plt_deploy_... \
   --image <pre-existing image> --version v1 --min-replicas 1
 ```
+
+The deploy token is app-bound, so ICC resolves the application from the token --
+a CI needs only the token, image, and version, never the application UUID. Pass
+`--app-id <id>` to force the app-scoped route instead (e.g. when driving it with
+an admin cookie).
 
 What happens depends on the app's mode (Settings → Skew Protection → Mode):
 
 * `manage` — ICC creates the Deployment + Service itself; `desk` applies nothing.
 * `advise` — ICC returns the manifests as a plan and `desk` applies them with
-  `kubectl` (use `--dry-run` to print the plan without applying).
+  `kubectl` (use `--dry-run` to print the plan without applying). For a strictly
+  read-only workflow — fetch the plan, inspect it, and apply it yourself — use
+  [`get-plan`](#get-plan) instead; `--via-icc` is the one-shot that applies for you.
 * `observe` — ICC rejects the deploy API (this is the default direct path above).
 
 Flags:
 
-* `--app-id` — the ICC application UUID (from the app URL `…/watts/<id>`). Required.
 * `--deploy-token` — a scoped deploy token (`plt_deploy_…`), or set
   `PLT_DEPLOY_TOKEN`. Mint one in the app's Settings → Deploy Tokens. Required.
+* `--app-id` — the ICC application UUID (from the app URL `…/watts/<id>`).
+  Optional: the token already identifies the app; pass it only to force the
+  app-scoped route.
 * `--icc-url` — ICC base URL (default `https://icc.plt`). TLS verification is
   disabled for this call (local self-signed cert); for local testing only.
 
@@ -265,6 +275,54 @@ exist before ICC can reference it (`--image <ref>` for a prebuilt one). `manage`
 mode also requires the `plt-pod-manager` RBAC to create Deployments/Services
 (shipped in the helm chart; run `helm upgrade`). See
 `skew-protection/TESTING.md` for the full manual test walkthrough.
+
+### `get-plan`
+
+Fetch a skew-protection actuation plan from ICC and print how to apply it with
+`kubectl`. Read-only: ICC computes the plan and mutates nothing; you apply it
+yourself. This is the `advise`-mode workflow, where an external actor owns the
+`kubectl apply` and ICC only observes the result.
+
+Plan a new version's deploy (Deployment + Service + HTTPRoute):
+
+```sh
+desk get-plan --profile skew-protection \
+  --deploy-token plt_deploy_... \
+  --image <pre-existing image> --version v9
+```
+
+Plan an existing version's next actuation -- the intent follows the version's
+state: a `pending-apply` version yields an *activate* plan (the HTTPRoute that
+makes it the gateway default), a `draining` version yields an *expire* plan
+(rebuild the route without it, scale its workload to zero):
+
+```sh
+desk get-plan --profile skew-protection \
+  --deploy-token plt_deploy_... \
+  --version v8
+```
+
+`desk` writes each manifest to the run dir and prints the `kubectl` commands to
+apply the plan, for example:
+
+```
+ICC returned a 2-step plan (intent: expire). ICC applied nothing.
+  1. HTTPRoute/apply    leads-demo      route default traffic to v9
+  2. Deployment/scale   leads-demo-v8   scale down v8
+
+Apply it yourself with kubectl:
+  kubectl --namespace=platformatic apply --filename=.desk/run/icc-HTTPRoute-leads-demo.json
+  kubectl -n platformatic scale deployment/leads-demo-v8 --replicas=0
+```
+
+Once you apply it, ICC observes the change and moves the version on its own
+(`pending-apply -> active`, or `draining -> expired`).
+
+Flags are the same `--deploy-token` / `--icc-url` (and optional `--app-id`) as
+`deploy --via-icc`: the token is app-bound, so ICC resolves the application from
+it and `--app-id` is optional (the deploy token is route-allowlisted to the
+read-only plan endpoints). With `--image` the plan is a new deploy; without it,
+the plan comes from the existing version's current state.
 
 ## Troubleshooting
 
