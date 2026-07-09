@@ -154,7 +154,7 @@ export default async function cli (argv) {
   }
 
   await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
-  await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
+  const serviceName = await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
 
   if (args.headless) {
     if (!args['dry-run']) {
@@ -173,7 +173,7 @@ export default async function cli (argv) {
   } else {
     // Create a basic HTTPRoute for the non-versioned deploy.
     // ICC will replace this HTTPRoute when the first versioned deploy arrives.
-    await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context, hostname })
+    await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context, hostname, serviceName })
 
     if (!args['dry-run']) {
       info('\nApplication deploying. It may take some time to see it available.')
