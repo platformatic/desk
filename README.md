@@ -171,6 +171,14 @@ When `--version` / `-v` is provided, the Deployment and Service are named
 `app.kubernetes.io/name: my-watt-project` and `plt.dev/version: v1`. Traffic
 routes through Gateway API HTTPRoutes managed by ICC.
 
+Without `--version`, `desk` leaves the version unset and lets ICC mint it: ICC
+derives a `plt_` id from the image (same shape as a Vercel deployment id, with a
+`plt_` prefix) and delivers it back to the pod. The workload is then named
+`{app}-{image-tag}` (unique per build) instead of `{app}`, so two deploys from
+different images coexist as separate Deployments/Services and ICC can route
+between their versions. `desk` never derives a version itself -- ICC is the single
+point that mints one.
+
 Deploy with a dedicated hostname:
 
 ```sh
@@ -238,7 +246,8 @@ desk deploy --profile <name> --dir ./my-watt-project --envfile ./my-watt-project
 By default `desk` templates the Deployment + Service and applies them directly
 (the skew-protection `observe` model: you create the workload, ICC manages
 routing). Use `--via-icc` to instead drive the deploy through ICC's deploy API,
-which lets you exercise the `manage` and `advise` actuation modes:
+which lets you exercise the `advise` actuation mode (`manage` is temporarily
+parked -- see the mode list below):
 
 ```sh
 desk deploy --profile skew-protection --via-icc \
@@ -253,7 +262,9 @@ an admin cookie).
 
 What happens depends on the app's mode (Settings → Skew Protection → Mode):
 
-* `manage` — ICC creates the Deployment + Service itself; `desk` applies nothing.
+* `manage` — **parked**: ICC returns `503 ManageModeUnavailable` while the
+  ICC-owned creation path is reworked; use `observe` or `advise`. (When restored:
+  ICC creates the Deployment + Service itself and `desk` applies nothing.)
 * `advise` — ICC returns the manifests as a plan and `desk` applies them with
   `kubectl` (use `--dry-run` to print the plan without applying). For a strictly
   read-only workflow — fetch the plan, inspect it, and apply it yourself — use
@@ -271,9 +282,9 @@ Flags:
   disabled for this call (local self-signed cert); for local testing only.
 
 `--via-icc` still builds/pushes the image when `--dir` is used; the image must
-exist before ICC can reference it (`--image <ref>` for a prebuilt one). `manage`
-mode also requires the `plt-pod-manager` RBAC to create Deployments/Services
-(shipped in the helm chart; run `helm upgrade`). See
+exist before ICC can reference it (`--image <ref>` for a prebuilt one). (`manage`
+mode, when restored, also requires the `plt-pod-manager` RBAC to create
+Deployments/Services -- shipped in the helm chart; run `helm upgrade`.) See
 `skew-protection/TESTING.md` for the full manual test walkthrough.
 
 ### `get-plan`
