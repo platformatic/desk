@@ -122,10 +122,9 @@ export default async function cli (argv) {
     }
   }
 
-  // ICC-driven deploy: hand the image to ICC's deploy API and let the app's
-  // actuation mode decide (manage = ICC creates the workload; advise = ICC
-  // returns manifests that desk applies). This is the CI path a customer uses,
-  // and the way to exercise manage/advise modes end to end.
+  // ICC-driven deploy: hand the image to ICC's deploy API. ICC creates the
+  // workload (Deployment + Service) itself and the pod registers back. This is
+  // the CI path a customer uses -- the pipeline holds only a deploy token.
   if (args['via-icc']) {
     // --app-id is optional: with a deploy token ICC resolves the application from
     // the token (the CI needs only the token). Pass --app-id to force the
@@ -148,8 +147,7 @@ export default async function cli (argv) {
       maxReplicas,
       env: Object.keys(envVars).length ? envVars : undefined
     })
-    info(`ICC actuation mode: ${result.mode}`)
-    await handleIccDeploy(context, args.namespace, result, args['dry-run'])
+    handleIccDeploy(result)
     return
   }
 
