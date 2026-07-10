@@ -243,11 +243,10 @@ desk deploy --profile <name> --dir ./my-watt-project --envfile ./my-watt-project
 
 #### Deploy through ICC's deploy API (`--via-icc`)
 
-By default `desk` templates the Deployment + Service and applies them directly
-(the skew-protection `observe` model: you create the workload, ICC manages
-routing). Use `--via-icc` to instead drive the deploy through ICC's deploy API,
-which lets you exercise the `advise` actuation mode (`manage` is temporarily
-parked -- see the mode list below):
+By default `desk` templates the Deployment + Service and applies them directly.
+Use `--via-icc` to instead drive the deploy through ICC's deploy API: ICC creates
+the Deployment + Service itself and the pod registers back (the CI path a customer
+uses -- the pipeline holds only a deploy token):
 
 ```sh
 desk deploy --profile skew-protection --via-icc \
@@ -260,16 +259,10 @@ a CI needs only the token, image, and version, never the application UUID. Pass
 `--app-id <id>` to force the app-scoped route instead (e.g. when driving it with
 an admin cookie).
 
-What happens depends on the app's mode (Settings → Skew Protection → Mode):
-
-* `manage` — **parked**: ICC returns `503 ManageModeUnavailable` while the
-  ICC-owned creation path is reworked; use `observe` or `advise`. (When restored:
-  ICC creates the Deployment + Service itself and `desk` applies nothing.)
-* `advise` — ICC returns the manifests as a plan and `desk` applies them with
-  `kubectl` (use `--dry-run` to print the plan without applying). For a strictly
-  read-only workflow — fetch the plan, inspect it, and apply it yourself — use
-  [`get-plan`](#get-plan) instead; `--via-icc` is the one-shot that applies for you.
-* `observe` — ICC rejects the deploy API (this is the default direct path above).
+The deploy API always creates the workload; it does not gate on the app's
+actuation mode (the mode now only governs version routing). For a strictly
+read-only workflow -- fetch the manifests, inspect them, and apply them yourself
+-- use [`get-plan`](#get-plan) instead.
 
 Flags:
 
@@ -282,10 +275,10 @@ Flags:
   disabled for this call (local self-signed cert); for local testing only.
 
 `--via-icc` still builds/pushes the image when `--dir` is used; the image must
-exist before ICC can reference it (`--image <ref>` for a prebuilt one). (`manage`
-mode, when restored, also requires the `plt-pod-manager` RBAC to create
-Deployments/Services -- shipped in the helm chart; run `helm upgrade`.) See
-`skew-protection/TESTING.md` for the full manual test walkthrough.
+exist before ICC can reference it (`--image <ref>` for a prebuilt one). ICC needs
+the deployer RBAC to create Deployments/Services/pull Secrets -- gated behind
+`services.icc.features.deployer.enable` in the helm chart (run `helm upgrade`).
+See `skew-protection/TESTING.md` for the full manual test walkthrough.
 
 ### `get-plan`
 
