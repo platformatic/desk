@@ -45,9 +45,10 @@ platformatic:
           enable: false
         ffc:
           enable: false
+        deployer:
+          enable: true                     # ICC creates workloads via the deploy API (grants create/patch on Deployments/Services/pull Secrets)
         skew_protection:
           enable: true
-          manage_mode: true                # Grant ICC create/patch on Deployments+Services so manage-mode deploys work (testing profile)
           auto_cleanup: false              # Keep expired Deployments/Services for inspection
           http_grace_period_ms: 120000     # 2 min: keep >= traffic_window_ms
           http_max_alive_ms: 900000         # 15 min for e2e testing
