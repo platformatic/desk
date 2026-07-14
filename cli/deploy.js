@@ -6,10 +6,15 @@ import { loadContext } from '../lib/context.js'
 import { error, info } from '../lib/utils.js'
 import * as registry from '../lib/registry.js'
 import * as deploy from '../lib/deploy.js'
-import { deployViaIcc, handleIccDeploy } from '../lib/icc.js'
+import { deployViaIcc, handleIccDeploy, writeAndPrintPlan } from '../lib/icc.js'
 import { getClusterStatus } from '../lib/cluster/index.js'
+import { detectWorkflow } from '../lib/workflow.js'
 
 export const options = { command: 'deploy', strict: true }
+
+export function imageName (image) {
+  return image.split('/').at(-1).split('@')[0].split(':')[0]
+}
 
 export default async function cli (argv) {
   const args = minimist(argv, {
@@ -39,10 +44,7 @@ export default async function cli (argv) {
       version: 'v',
       hostname: 'h'
     },
-    default: {
-      namespace: 'platformatic',
-      'icc-url': 'https://icc.plt'
-    }
+    default: { 'icc-url': 'https://icc.plt' }
   })
 
   if (!args.profile) {
@@ -62,30 +64,6 @@ export default async function cli (argv) {
     process.exit(1)
   }
 
-  let appImage = args.image
-  let appName
-  let isWorkflow = false
-  if (args.dir) {
-    const directory = resolve(args.dir)
-    appName = basename(directory).split(sep).pop()
-    appImage = `plt.localreg/plt-local/${appName}:${Date.now()}`
-
-    // Detect workflow apps by checking if the Dockerfile sets WORKFLOW_TARGET_WORLD
-    // to @platformatic/world (our managed workflow service)
-    try {
-      const dockerfile = await readFile(join(directory, 'Dockerfile'), 'utf8')
-      if (/WORKFLOW_TARGET_WORLD\s*=\s*["']?@platformatic\/world["']?/.test(dockerfile)) {
-        isWorkflow = true
-      }
-    } catch {
-      // Dockerfile not found or unreadable — skip detection
-    }
-
-    await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc })
-  } else {
-    appName = appImage.split(':')[0].split('/').pop()
-  }
-
   const envVars = {}
   if (args.envfile) {
     dotenv.config({
@@ -93,6 +71,27 @@ export default async function cli (argv) {
       processEnv: envVars
     })
   }
+
+  let appImage = args.image
+  let appName
+  let directory
+  let dockerfile = ''
+  if (args.dir) {
+    directory = resolve(args.dir)
+    appName = basename(directory).split(sep).pop()
+    appImage = `plt.localreg/plt-local/${appName}:${Date.now()}`
+
+    try {
+      dockerfile = await readFile(join(directory, 'Dockerfile'), 'utf8')
+    } catch {
+      // Dockerfile not found or unreadable; the env file can still declare a workflow.
+    }
+  } else {
+    appName = imageName(appImage)
+  }
+
+  const isWorkflow = detectWorkflow(dockerfile, envVars)
+  if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc })
 
   const clusterStatus = await getClusterStatus({ context })
   if (clusterStatus.kafka?.connectionString) {
@@ -145,19 +144,26 @@ export default async function cli (argv) {
       namespace: args.namespace,
       minReplicas,
       maxReplicas,
-      env: Object.keys(envVars).length ? envVars : undefined
+      env: Object.keys(envVars).length ? envVars : undefined,
+      expirePolicy: isWorkflow ? 'workflow' : undefined
     })
+    if (result.pendingApply && result.plan?.length) {
+      const planNamespace = result.plan.find(step => step.manifest)?.manifest?.metadata?.namespace || args.namespace || 'platformatic'
+      await writeAndPrintPlan(context, planNamespace, result.plan, { intent: 'deploy' })
+      return
+    }
     handleIccDeploy(result)
     return
   }
 
-  await deploy.createDeployment(appName, appImage, args.namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
-  const serviceName = await deploy.createService(appName, appImage, args.namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
+  const namespace = args.namespace || 'platformatic'
+  await deploy.createDeployment(appName, appImage, namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
+  const serviceName = await deploy.createService(appName, appImage, namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
 
   if (args.headless) {
     if (!args['dry-run']) {
       info('\nHeadless service deploying. No gateway route will be created.')
-      info(`DNS: ${appName}.${args.namespace}.svc.cluster.local`)
+      info(`DNS: ${appName}.${namespace}.svc.cluster.local`)
     }
   } else if (version) {
     // Versioned deploys route through Gateway API HTTPRoutes managed by ICC
@@ -171,7 +177,7 @@ export default async function cli (argv) {
   } else {
     // Create a basic HTTPRoute for the non-versioned deploy.
     // ICC will replace this HTTPRoute when the first versioned deploy arrives.
-    await deploy.createHTTPRoute(appName, args.namespace, args['dry-run'], { context, hostname, serviceName })
+    await deploy.createHTTPRoute(appName, namespace, args['dry-run'], { context, hostname, serviceName })
 
     if (!args['dry-run']) {
       info('\nApplication deploying. It may take some time to see it available.')
