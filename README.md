@@ -424,10 +424,12 @@ desk deploy --profile skew-protection --dir ./my-app --version v2
 ICC will detect the new versions via pod labels and create HTTPRoute rules to
 route traffic to the correct version based on the `__plt_dpl` cookie.
 
-For workflow apps (apps with `WORKFLOW_TARGET_WORLD=@platformatic/world` in the
-Dockerfile), ICC automatically registers queue handlers with the workflow service
-and uses workflow-aware draining — keeping old versions alive until active
-workflows complete.
+Workflow apps declare `PLT_WORKFLOW=true` with a Dockerfile `ENV` instruction or
+in the file passed to `--envfile`. Set it explicitly to `false` to disable workflow
+classification. ICC then registers queue handlers with the workflow service and
+uses workflow-aware draining, keeping old versions alive until active workflows
+complete. `WORKFLOW_TARGET_WORLD=@platformatic/world` in the Dockerfile remains a
+compatibility fallback.
 
 ### Testing ICC Installation Script
 
