@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createDeployment } from '../lib/deploy.js'
-import { imageName } from '../cli/deploy.js'
+import { imageName, deployBuildArgs } from '../cli/deploy.js'
 
 test('imageName handles registry ports, tags, and digests', () => {
   assert.equal(imageName('localhost:5000/orders:v2'), 'orders')
@@ -48,4 +48,22 @@ test('workflow deployment has authoritative world metadata', async () => {
   } finally {
     await rm(runDir, { recursive: true, force: true })
   }
+})
+
+test('--version reaches the image build as PLT_DEPLOYMENT_ID', () => {
+  // The value has to land in three places at once: the build arg (so the client
+  // assets carry ?dpl=<id>), the plt.dev/version label, and therefore the
+  // gateway's match key. This covers the build-arg half; the label half is
+  // asserted by the createDeployment tests above.
+  assert.deepEqual(deployBuildArgs('v2'), { PLT_DEPLOYMENT_ID: 'v2' })
+  assert.deepEqual(deployBuildArgs('a1b2c3d4e5f6'), { PLT_DEPLOYMENT_ID: 'a1b2c3d4e5f6' })
+})
+
+test('a deploy without --version passes no build args', () => {
+  // Unversioned deploys must build exactly as before. Passing an empty
+  // PLT_DEPLOYMENT_ID would make the framework hooks stamp `?dpl=` on every
+  // asset URL, which matches nothing.
+  assert.deepEqual(deployBuildArgs(undefined), {})
+  assert.deepEqual(deployBuildArgs(null), {})
+  assert.deepEqual(deployBuildArgs(''), {})
 })
