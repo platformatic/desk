@@ -91,7 +91,16 @@ export default async function cli (argv) {
   }
 
   const isWorkflow = detectWorkflow(dockerfile, envVars)
-  if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc })
+
+  // Query-string skew protection needs ONE value in three places: baked into the
+  // client assets as `?dpl=<id>` at build time, set as plt.dev/version on the
+  // workload, and therefore used as the gateway's match key. --version is that
+  // value, so thread it into the build too. Without this the assets carry no
+  // ?dpl, ICC sees a version that was not built with its own id, and the version
+  // is silently unpinnable. The app's Dockerfile must declare the matching
+  // `ARG PLT_DEPLOYMENT_ID=`; if it does not, this build arg is simply ignored.
+  const buildArgs = args.version ? { PLT_DEPLOYMENT_ID: args.version } : {}
+  if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc, buildArgs })
 
   const clusterStatus = await getClusterStatus({ context })
   if (clusterStatus.kafka?.connectionString) {
