@@ -69,6 +69,7 @@ platformatic:
           check_interval_ms: 10000         # 10 seconds
           traffic_window_ms: 30000         # 30 seconds for e2e testing
           cookie_max_age: 43200            # 12h in seconds (keep default)
+          default_routing_mode: query       # query | cookie; per-app override in ICC settings
         icc_jobs:
           enable: true
 

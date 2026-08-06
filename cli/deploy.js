@@ -12,6 +12,23 @@ import { detectWorkflow } from '../lib/workflow.js'
 
 export const options = { command: 'deploy', strict: true }
 
+// Docker build args for a deploy. Query-string skew protection needs ONE value
+// in three places: baked into the client assets as `?dpl=<id>` at build time,
+// set as plt.dev/version on the workload, and therefore used as the gateway's
+// match key. --version is that value, so it has to reach the build as well as
+// the deploy.
+//
+// Exported so this is covered by a test: the failure is silent. Without the
+// build arg the image builds, the workload deploys, and the app runs, but its
+// assets carry no ?dpl, so ICC sees a version that was not built with its own id
+// and correctly refuses to route to it. Nothing errors.
+//
+// An app whose Dockerfile does not declare `ARG PLT_DEPLOYMENT_ID=` simply
+// ignores it.
+export function deployBuildArgs (version) {
+  return version ? { PLT_DEPLOYMENT_ID: version } : {}
+}
+
 export function imageName (image) {
   return image.split('/').at(-1).split('@')[0].split(':')[0]
 }
@@ -91,7 +108,9 @@ export default async function cli (argv) {
   }
 
   const isWorkflow = detectWorkflow(dockerfile, envVars)
-  if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc })
+
+  const buildArgs = deployBuildArgs(args.version)
+  if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc, buildArgs })
 
   const clusterStatus = await getClusterStatus({ context })
   if (clusterStatus.kafka?.connectionString) {
