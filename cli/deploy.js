@@ -1,5 +1,6 @@
 import { resolve, sep, basename, join } from 'node:path'
 import { readFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import minimist from 'minimist'
 import dotenv from 'dotenv'
 import { loadContext } from '../lib/context.js'
@@ -27,6 +28,39 @@ export const options = { command: 'deploy', strict: true }
 // ignores it.
 export function deployBuildArgs (version) {
   return version ? { PLT_DEPLOYMENT_ID: version } : {}
+}
+
+// Is this profile's ICC going to version what we deploy? Read from the profile
+// rather than asked of the cluster: the version has to be decided before the
+// image is built, which is before anything is deployed.
+export function skewProtectionEnabled (context) {
+  return context?.platformatic?.services?.icc?.features?.skew_protection?.enable === true
+}
+
+const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+function base62 (buf) {
+  let num = BigInt('0x' + buf.toString('hex'))
+  let out = ''
+  while (num > 0n) {
+    out = BASE62[Number(num % 62n)] + out
+    num /= 62n
+  }
+  return out
+}
+
+// A version label for a deploy that did not name one, in the same `plt_` + 24
+// base62 shape ICC mints, derived the same way: sha256 of the image reference.
+// Deriving rather than randomising means rebuilding the same tag names the same
+// version, and desk's tag already carries a timestamp so each deploy differs.
+//
+// This is not the value ICC would derive for the same image -- ICC hashes
+// `tag@sha256:digest`, and the digest does not exist until after the build that
+// this id has to be baked into. It does not need to match: a declared
+// plt.dev/version wins over derivation, so ICC never derives one here.
+export function generateVersion (imageRef) {
+  const hash = createHash('sha256').update(String(imageRef)).digest()
+  return 'plt_' + base62(hash).slice(0, 24)
 }
 
 export function imageName (image) {
@@ -109,7 +143,18 @@ export default async function cli (argv) {
 
   const isWorkflow = detectWorkflow(dockerfile, envVars)
 
-  const buildArgs = deployBuildArgs(args.version)
+  // Mint a version when skew protection is on and none was named. It has to be
+  // decided here, before the build, because the id is baked into the client
+  // assets -- a version assigned afterwards is one ICC cannot pin.
+  //
+  // Only when building from --dir. A prebuilt --image already carries whatever
+  // id it was built with, and a label we invent here would contradict it: ICC
+  // would see the mismatch and refuse to route by query anyway.
+  const version = args.version ||
+    (directory && skewProtectionEnabled(context) ? generateVersion(appImage) : undefined)
+  if (version && !args.version) info(`No --version given; using generated version ${version}`)
+
+  const buildArgs = deployBuildArgs(version)
   if (directory) await registry.buildFromDirectory(directory, appImage, { npmrc: args.npmrc, buildArgs })
 
   const clusterStatus = await getClusterStatus({ context })
@@ -121,7 +166,6 @@ export default async function cli (argv) {
     envVars.REGINA_VALKEY_CONNECTION_STRING = clusterStatus.valkeyRegina.connectionString
   }
 
-  const version = args.version
   const hostname = args.hostname
 
   let minReplicas
