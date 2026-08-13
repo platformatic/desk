@@ -166,18 +166,24 @@ Deploy a second version alongside the first:
 desk deploy --profile skew-protection --dir ./my-watt-project --version v2
 ```
 
-When `--version` / `-v` is provided, the Deployment and Service are named
-`{app}-{version}` (e.g., `my-watt-project-v1`) and labelled with
-`app.kubernetes.io/name: my-watt-project` and `plt.dev/version: v1`. Traffic
-routes through Gateway API HTTPRoutes managed by ICC.
+`--skew` selects between the two deploy shapes, and naming a `--version` implies
+it. Deploy the same app without either flag and it behaves like any other
+deploy.
 
-Without `--version`, `desk` leaves the version unset and lets ICC mint it: ICC
-derives a `plt_` id from the image (same shape as a Vercel deployment id, with a
-`plt_` prefix) and delivers it back to the pod. The workload is then named
-`{app}-{image-tag}` (unique per build) instead of `{app}`, so two deploys from
-different images coexist as separate Deployments/Services and ICC can route
-between their versions. `desk` never derives a version itself -- ICC is the single
-point that mints one.
+With `--skew`, the Deployment and Service are named `{app}-{version}` (e.g.
+`my-watt-project-v1`) and labelled with `app.kubernetes.io/name:
+my-watt-project` and `plt.dev/version: v1`. Each version is a separate workload
+so they coexist while the old one drains, and traffic routes through Gateway API
+HTTPRoutes managed by ICC, which also expires versions once they go idle. Given
+no `--version`, `desk` generates one before the image build so it can be baked in
+as `PLT_DEPLOYMENT_ID`, which is what makes the version pinnable by `?dpl=`.
+
+Without `--skew`, the workload keeps the single name `{app}` and each deploy
+rolls it over in place, replacing the previous pods. No version label is set, so
+ICC records a version for history (deriving a `plt_` id from the image) but
+manages no routing: `desk` writes the HTTPRoute itself. This is the mode to use
+when `skew_protection` is disabled in the profile, since nothing would ever
+remove superseded workloads.
 
 Deploy with a dedicated hostname:
 

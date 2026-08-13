@@ -69,7 +69,7 @@ export function imageName (image) {
 
 export default async function cli (argv) {
   const args = minimist(argv, {
-    bool: ['dry-run', 'headless', 'via-icc'],
+    bool: ['dry-run', 'headless', 'via-icc', 'skew'],
     string: [
       'dir',
       'image',
@@ -143,15 +143,22 @@ export default async function cli (argv) {
 
   const isWorkflow = detectWorkflow(dockerfile, envVars)
 
-  // Mint a version when skew protection is on and none was named. It has to be
-  // decided here, before the build, because the id is baked into the client
-  // assets -- a version assigned afterwards is one ICC cannot pin.
+  // --skew is the switch between the two deploy shapes, and naming an explicit
+  // --version implies it. Without it this is an ordinary deploy: one workload
+  // that each deploy replaces, routed by the HTTPRoute desk writes below. With
+  // it, every version is its own workload so they can coexist, and ICC takes
+  // over routing and expiry.
+  const skew = args.skew || !!args.version
+
+  // Mint a version when skew is on and none was named. It has to be decided
+  // here, before the build, because the id is baked into the client assets --
+  // a version assigned afterwards is one ICC cannot pin.
   //
   // Only when building from --dir. A prebuilt --image already carries whatever
   // id it was built with, and a label we invent here would contradict it: ICC
   // would see the mismatch and refuse to route by query anyway.
   const version = args.version ||
-    (directory && skewProtectionEnabled(context) ? generateVersion(appImage) : undefined)
+    (directory && skew ? generateVersion(appImage) : undefined)
   if (version && !args.version) info(`No --version given; using generated version ${version}`)
 
   const buildArgs = deployBuildArgs(version)
@@ -220,8 +227,8 @@ export default async function cli (argv) {
   }
 
   const namespace = args.namespace || 'platformatic'
-  await deploy.createDeployment(appName, appImage, namespace, envVars, args['dry-run'], { context, version, isWorkflow, hostname, minReplicas, maxReplicas })
-  const serviceName = await deploy.createService(appName, appImage, namespace, args['dry-run'], { context, version, isWorkflow, headless: args.headless })
+  await deploy.createDeployment(appName, appImage, namespace, envVars, args['dry-run'], { context, version, skew, isWorkflow, hostname, minReplicas, maxReplicas })
+  const serviceName = await deploy.createService(appName, appImage, namespace, args['dry-run'], { context, version, skew, isWorkflow, headless: args.headless })
 
   if (args.headless) {
     if (!args['dry-run']) {
