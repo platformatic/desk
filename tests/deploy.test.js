@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createDeployment, resourceVersion } from '../lib/deploy.js'
+import { createDeployment, resourceVersion, workloadName } from '../lib/deploy.js'
 import { imageName, deployBuildArgs, generateVersion, skewProtectionEnabled } from '../cli/deploy.js'
 
 test('imageName handles registry ports, tags, and digests', () => {
@@ -117,4 +117,54 @@ test('a generated version reaches the image build', () => {
   // would produce a version label whose assets carry no matching ?dpl.
   const version = generateVersion('plt.localreg/plt-local/orders:1786546018096')
   assert.deepEqual(deployBuildArgs(version), { PLT_DEPLOYMENT_ID: version })
+})
+
+test('without skew the workload keeps one name so deploys replace it', async () => {
+  // The bug this fixes: naming from the image tag (a Date.now() value) made every
+  // deploy a new Deployment, and nothing removed the previous one, because expiry
+  // is skew machinery that ICC leaves off with the feature disabled.
+  const first = workloadName('orders', undefined, 'registry/orders:1786613986032', false)
+  const second = workloadName('orders', undefined, 'registry/orders:1786614038051', false)
+
+  assert.equal(first, 'orders')
+  assert.equal(second, first)
+})
+
+test('with skew each version is its own workload', async () => {
+  // Versions have to coexist while the old one drains, so the name must differ.
+  const v1 = workloadName('orders', 'plt_aaaaaaaaaaaaaaaaaaaaaaaa', 'registry/orders:1', true)
+  const v2 = workloadName('orders', 'plt_bbbbbbbbbbbbbbbbbbbbbbbb', 'registry/orders:2', true)
+
+  assert.notEqual(v1, v2)
+  // plt_ ids are not legal name segments, so both fall back to the image tag.
+  assert.equal(v1, 'orders-1')
+  assert.equal(v2, 'orders-2')
+  // An explicit legal version names the workload directly.
+  assert.equal(workloadName('orders', 'v1.2.3', 'registry/orders:9', true), 'orders-v1.2.3')
+})
+
+test('a named version implies a per-version workload', async () => {
+  // The CLI treats --version as implying --skew; the builders must agree, or a
+  // versioned deploy through the library would silently collapse onto one name.
+  assert.equal(workloadName('orders', 'v2', 'registry/orders:9', false), 'orders-v2')
+})
+
+test('an unversioned deploy carries no version label', async () => {
+  const runDir = await mkdtemp(join(tmpdir(), 'desk-deploy-'))
+  try {
+    await createDeployment('orders', 'registry/orders:1786614038051', 'platformatic', {}, true, {
+      context: { runDir },
+      skew: false
+    })
+
+    const manifest = JSON.parse(await readFile(join(runDir, 'deployment.json'), 'utf8'))
+    assert.equal(manifest.metadata.name, 'orders')
+    assert.deepEqual(manifest.metadata.labels, {
+      'app.kubernetes.io/name': 'orders',
+      'app.kubernetes.io/instance': 'orders'
+    })
+    assert.equal(manifest.spec.selector.matchLabels['app.kubernetes.io/instance'], 'orders')
+  } finally {
+    await rm(runDir, { recursive: true, force: true })
+  }
 })
