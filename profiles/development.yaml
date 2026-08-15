@@ -100,6 +100,19 @@ platformatic:
       localRepo: "{{ WORKFLOW_REPO }}"
       workingDir: /app/packages/workflow
 
+      # hotReload mounts the local checkout over /app, which masks the image's
+      # node_modules, so the container runs `pnpm install` across all 6 workspace
+      # projects on every start. That does not fit in the chart's 1Gi default: the
+      # pod is OOMKilled mid-install and restarts into the same install, so it
+      # never converges.
+      resources:
+        limits:
+          memory: "2Gi"
+          cpu: "1"
+        requests:
+          memory: "1Gi"
+          cpu: "500m"
+
       replicas:
         min: 1
         max: 1
