@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 import minimist from 'minimist'
 import dotenv from 'dotenv'
 import { loadContext } from '../lib/context.js'
-import { error, info } from '../lib/utils.js'
+import { error, info, warn } from '../lib/utils.js'
 import * as registry from '../lib/registry.js'
 import * as deploy from '../lib/deploy.js'
 import { deployViaIcc, handleIccDeploy, writeAndPrintPlan } from '../lib/icc.js'
@@ -37,6 +37,14 @@ export function skewProtectionEnabled (context) {
   return context?.platformatic?.services?.icc?.features?.skew_protection?.enable === true
 }
 
+// A named --version selects a per-version workload. Otherwise --no-skew selects
+// an in-place rollout, and without either the profile decides.
+export function resolveSkew ({ version, skew } = {}, context) {
+  if (version) return true
+  if (skew === false) return false
+  return skewProtectionEnabled(context)
+}
+
 const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
 function base62 (buf) {
@@ -67,9 +75,12 @@ export function imageName (image) {
   return image.split('/').at(-1).split('@')[0].split(':')[0]
 }
 
-export default async function cli (argv) {
-  const args = minimist(argv, {
-    bool: ['dry-run', 'headless', 'via-icc', 'skew'],
+export function parseDeployArgs (argv) {
+  if (argv.some(arg => arg === '--skew' || arg.startsWith('--skew='))) {
+    throw new Error('--skew is not supported; enable skew protection in the profile to deploy versioned workloads')
+  }
+  return minimist(argv, {
+    boolean: ['dry-run', 'headless', 'via-icc', 'skew'],
     string: [
       'dir',
       'image',
@@ -95,8 +106,19 @@ export default async function cli (argv) {
       version: 'v',
       hostname: 'h'
     },
-    default: { 'icc-url': 'https://icc.plt' }
+    // null rather than minimist's false, so no flag defers to the profile
+    default: { 'icc-url': 'https://icc.plt', skew: null }
   })
+}
+
+export default async function cli (argv) {
+  let args
+  try {
+    args = parseDeployArgs(argv)
+  } catch (err) {
+    error(err.message)
+    process.exit(1)
+  }
 
   if (!args.profile) {
     error('Missing --profile flag. Please specify a profile (e.g. --profile skew-protection)')
@@ -143,12 +165,13 @@ export default async function cli (argv) {
 
   const isWorkflow = detectWorkflow(dockerfile, envVars)
 
-  // --skew is the switch between the two deploy shapes, and naming an explicit
-  // --version implies it. Without it this is an ordinary deploy: one workload
-  // that each deploy replaces, routed by the HTTPRoute desk writes below. With
-  // it, every version is its own workload so they can coexist, and ICC takes
-  // over routing and expiry.
-  const skew = args.skew || !!args.version
+  // Two deploy shapes: without skew, one workload that each deploy replaces,
+  // routed by the HTTPRoute desk writes below; with it, every version is its own
+  // workload so they can coexist, and ICC takes over routing and expiry.
+  const skew = resolveSkew(args, context)
+  if (!skew && skewProtectionEnabled(context)) {
+    warn(`Profile "${args.profile}" enables skew protection but --no-skew was passed: this in-place rollout cannot keep old and new versions available for skew routing`)
+  }
 
   // Mint a version when skew is on and none was named. It has to be decided
   // here, before the build, because the id is baked into the client assets --

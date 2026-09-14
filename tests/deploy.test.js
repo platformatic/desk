@@ -4,7 +4,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createDeployment, resourceVersion, workloadName } from '../lib/deploy.js'
-import { imageName, deployBuildArgs, generateVersion, skewProtectionEnabled } from '../cli/deploy.js'
+import { imageName, deployBuildArgs, generateVersion, skewProtectionEnabled, resolveSkew, parseDeployArgs } from '../cli/deploy.js'
 
 test('imageName handles registry ports, tags, and digests', () => {
   assert.equal(imageName('localhost:5000/orders:v2'), 'orders')
@@ -144,9 +144,40 @@ test('with skew each version is its own workload', async () => {
 })
 
 test('a named version implies a per-version workload', async () => {
-  // The CLI treats --version as implying --skew; the builders must agree, or a
-  // versioned deploy through the library would silently collapse onto one name.
+  // The CLI treats --version as selecting a versioned workload. The builders
+  // must agree or a library deploy would silently collapse onto one name.
   assert.equal(workloadName('orders', 'v2', 'registry/orders:9', false), 'orders-v2')
+})
+
+test('the deploy shape follows the profile unless --no-skew overrides it', () => {
+  const on = { platformatic: { services: { icc: { features: { skew_protection: { enable: true } } } } } }
+  const off = { platformatic: { services: { icc: { features: { skew_protection: { enable: false } } } } } }
+
+  // Without a flag, a skew-protection profile deploys per-version workloads.
+  assert.equal(resolveSkew({ skew: null }, on), true)
+  assert.equal(resolveSkew({ skew: null }, off), false)
+  assert.equal(resolveSkew({}, {}), false)
+
+  assert.equal(resolveSkew({ skew: false }, on), false)
+
+  assert.equal(resolveSkew({ version: 'v2', skew: false }, off), true)
+})
+
+test('deploy flags parse as booleans', () => {
+  assert.equal(parseDeployArgs(['--profile', 'dev']).skew, null)
+  assert.equal(parseDeployArgs(['--no-skew']).skew, false)
+  assert.throws(() => parseDeployArgs(['--skew']), /--skew is not supported/)
+  assert.throws(() => parseDeployArgs(['--skew=true']), /--skew is not supported/)
+  assert.throws(() => parseDeployArgs(['--skew=false']), /--skew is not supported/)
+
+  // A value after a boolean flag stays a separate argument
+  const args = parseDeployArgs(['--no-skew', './app'])
+  assert.equal(args.skew, false)
+  assert.deepEqual(args._, ['./app'])
+
+  assert.equal(parseDeployArgs(['--dry-run=false'])['dry-run'], false)
+  assert.equal(parseDeployArgs(['--via-icc=false'])['via-icc'], false)
+  assert.equal(parseDeployArgs(['--headless']).headless, true)
 })
 
 test('an unversioned deploy carries no version label', async () => {
