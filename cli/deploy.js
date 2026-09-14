@@ -37,13 +37,11 @@ export function skewProtectionEnabled (context) {
   return context?.platformatic?.services?.icc?.features?.skew_protection?.enable === true
 }
 
-// Which deploy shape to use. A named --version is always a per-version workload.
-// Otherwise --skew / --no-skew decide, and without either the profile does: with
-// skew protection on, ICC expires a superseded version by scaling its workload to
-// zero, so an in-place deploy would take the new version down with the old one.
+// A named --version selects a per-version workload. Otherwise --no-skew selects
+// an in-place rollout, and without either the profile decides.
 export function resolveSkew ({ version, skew } = {}, context) {
   if (version) return true
-  if (typeof skew === 'boolean') return skew
+  if (skew === false) return false
   return skewProtectionEnabled(context)
 }
 
@@ -78,6 +76,9 @@ export function imageName (image) {
 }
 
 export function parseDeployArgs (argv) {
+  if (argv.some(arg => arg === '--skew' || arg.startsWith('--skew='))) {
+    throw new Error('--skew is not supported; enable skew protection in the profile to deploy versioned workloads')
+  }
   return minimist(argv, {
     boolean: ['dry-run', 'headless', 'via-icc', 'skew'],
     string: [
@@ -105,13 +106,19 @@ export function parseDeployArgs (argv) {
       version: 'v',
       hostname: 'h'
     },
-    // null rather than minimist's false, so an absent --skew defers to the profile
+    // null rather than minimist's false, so no flag defers to the profile
     default: { 'icc-url': 'https://icc.plt', skew: null }
   })
 }
 
 export default async function cli (argv) {
-  const args = parseDeployArgs(argv)
+  let args
+  try {
+    args = parseDeployArgs(argv)
+  } catch (err) {
+    error(err.message)
+    process.exit(1)
+  }
 
   if (!args.profile) {
     error('Missing --profile flag. Please specify a profile (e.g. --profile skew-protection)')
@@ -163,7 +170,7 @@ export default async function cli (argv) {
   // workload so they can coexist, and ICC takes over routing and expiry.
   const skew = resolveSkew(args, context)
   if (!skew && skewProtectionEnabled(context)) {
-    warn(`Profile "${args.profile}" enables skew protection but --no-skew was passed: ICC will scale this workload to zero when it expires the previous version`)
+    warn(`Profile "${args.profile}" enables skew protection but --no-skew was passed: this in-place rollout cannot keep old and new versions available for skew routing`)
   }
 
   // Mint a version when skew is on and none was named. It has to be decided

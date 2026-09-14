@@ -170,12 +170,13 @@ desk deploy --profile skew-protection --dir ./my-watt-project --version v2
 enables ICC skew protection (`services.icc.features.skew_protection.enable`),
 every deploy is versioned. The bundled `development`, `oss` and
 `skew-protection` profiles enable it. Otherwise each deploy replaces the
-previous one. `--skew` and `--no-skew` override the profile, and `--version`
-always implies `--skew`. Use `--skew` or `--version` only with a profile where
-ICC skew protection is enabled: these flags do not enable ICC's routing feature.
+previous one. `--no-skew` overrides the profile for an in-place deploy, while
+`--version` always selects a versioned workload. Use `--version` only with a
+profile where ICC skew protection is enabled: it does not enable ICC's routing
+feature.
 
-**Versioned** (skew protection on, `--skew`, or `--version`): each deploy gets
-its own Deployment and Service, so versions coexist while the old one drains.
+**Versioned** (skew protection on without `--no-skew`, or with `--version`):
+each deploy gets its own Deployment and Service, so versions coexist while the old one drains.
 ICC manages the HTTPRoute and expires idle versions.
 
 - With `--version v1`, the workload is named `{app}-v1` and labelled
