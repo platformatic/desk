@@ -10,7 +10,9 @@ Flags:
 	-i, --image		Pre-built container image to deploy
 	-n, --namespace		Kubernetes namespace (default: platformatic)
 	-e, --envfile		Path to .env file with environment variables
-	-v, --version		Version label for the deployment
+	-v, --version		Version label for the deployment (implies --skew)
+	    --skew		Deploy each version as its own workload (default when the profile enables skew protection)
+	    --no-skew		Replace the previous workload in place, even when the profile enables skew protection
 	    --hostname		Hostname for per-app routing
 	    --headless		Deploy as a headless service (no gateway route, direct pod IPs via DNS)
 	    --replicas		Number of replicas (sets both min and max)

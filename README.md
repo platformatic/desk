@@ -166,24 +166,43 @@ Deploy a second version alongside the first:
 desk deploy --profile skew-protection --dir ./my-watt-project --version v2
 ```
 
-`--skew` selects between the two deploy shapes, and naming a `--version` implies
-it. Deploy the same app without either flag and it behaves like any other
-deploy.
+`desk` deploys in one of two shapes. By default the profile decides: if it
+enables ICC skew protection (`services.icc.features.skew_protection.enable`),
+every deploy is versioned. The bundled `development`, `oss` and
+`skew-protection` profiles enable it. Otherwise each deploy replaces the
+previous one. `--skew` and `--no-skew` override the profile, and `--version`
+always implies `--skew`. Use `--skew` or `--version` only with a profile where
+ICC skew protection is enabled: these flags do not enable ICC's routing feature.
 
-With `--skew`, the Deployment and Service are named `{app}-{version}` (e.g.
-`my-watt-project-v1`) and labelled with `app.kubernetes.io/name:
-my-watt-project` and `plt.dev/version: v1`. Each version is a separate workload
-so they coexist while the old one drains, and traffic routes through Gateway API
-HTTPRoutes managed by ICC, which also expires versions once they go idle. Given
-no `--version`, `desk` generates one before the image build so it can be baked in
-as `PLT_DEPLOYMENT_ID`, which is what makes the version pinnable by `?dpl=`.
+**Versioned** (skew protection on, `--skew`, or `--version`): each deploy gets
+its own Deployment and Service, so versions coexist while the old one drains.
+ICC manages the HTTPRoute and expires idle versions.
 
-Without `--skew`, the workload keeps the single name `{app}` and each deploy
-rolls it over in place, replacing the previous pods. No version label is set, so
-ICC records a version for history (deriving a `plt_` id from the image) but
-manages no routing: `desk` writes the HTTPRoute itself. This is the mode to use
-when `skew_protection` is disabled in the profile, since nothing would ever
-remove superseded workloads.
+- With `--version v1`, the workload is named `{app}-v1` and labelled
+  `plt.dev/version: v1`.
+- With `--dir` and no `--version`, `desk` generates a `plt_...` version and
+  bakes it into the image as `PLT_DEPLOYMENT_ID`, which makes it pinnable by
+  `?dpl=`. That id is not a valid resource name, so the workload is named after
+  the image tag, for example `{app}-1757853000000`.
+- With `--image` and no `--version`, `desk` sets no version. The workload is
+  named `{app}-{image tag}`. ICC uses the image's baked `PLT_DEPLOYMENT_ID` if
+  present; otherwise it derives a version from the image digest. An image
+  without a baked ID cannot be pinned by `?dpl=`. Use a new image tag for each
+  deploy that should create a separate version; reusing a mutable tag rolls the
+  same workload in place and ICC keeps its existing version.
+
+For a prebuilt image deployed with `--version`, that version must match the
+image's baked `PLT_DEPLOYMENT_ID` for query-string pinning to work.
+
+**In place** (skew protection off, or `--no-skew`): the workload keeps the name
+`{app}` and each deploy replaces its pods. `desk` writes the HTTPRoute itself.
+Use this shape without skew protection, because nothing would ever remove old
+versioned workloads.
+
+> [!WARNING]
+> Avoid `--no-skew` on a profile that enables skew protection. An in-place
+> rollout replaces the pods of the existing workload, so old and new versions
+> cannot coexist for skew routing. `desk` prints a warning for this combination.
 
 Deploy with a dedicated hostname:
 
@@ -191,9 +210,13 @@ Deploy with a dedicated hostname:
 desk deploy --profile skew-protection --dir ./my-app --version v1 --hostname my-app.plt
 ```
 
-When `--hostname` is provided, ICC creates an HTTPRoute with `hostnames: ["my-app.plt"]`
-and a `/` path prefix instead of the default `hostnames: ["svcs.gw.plt"]` with `/<app-name>`.
-This is required for frameworks like Next.js that make root-relative fetch calls
+When `--hostname` is provided, the HTTPRoute matches `hostnames: ["my-app.plt"]`
+with a `/` path prefix. Without it, the route matches the `/<app-name>` path
+prefix, and a route written by `desk` also matches the `svcs.gw.plt` hostname.
+With skew protection enabled, ICC writes the route for versioned deploys;
+`desk` writes it for in-place deploys when skew protection is disabled.
+
+A hostname is required for frameworks like Next.js that make root-relative fetch calls
 (e.g., `fetch('/api/generate')`) which break under a sub-path. Add the hostname to
 `/etc/hosts` to resolve it locally:
 
@@ -259,6 +282,10 @@ desk deploy --profile skew-protection --via-icc \
   --deploy-token plt_deploy_... \
   --image <pre-existing image> --version v1 --min-replicas 1
 ```
+
+`--via-icc` requires an explicit `--version`, including when deploying a
+prebuilt image. For query-string pinning, it must match the ID baked into that
+image.
 
 The deploy token is app-bound, so ICC resolves the application from the token --
 a CI needs only the token, image, and version, never the application UUID. Pass
@@ -388,6 +415,7 @@ This profile:
 - Runs services with `pnpm run dev` for hot reloading
 - Sets `DEV_K8S=true` to enable Platformatic DB service file watching
 - Uses the same base image (`node:22.20.0-alpine`) as production for native module compatibility
+- Enables ICC skew protection, so `desk deploy` creates a separate versioned workload for every deploy (see [`deploy`](#deploy))
 
 When code changes are made in the local repositories, the services will automatically reload.
 
@@ -428,7 +456,8 @@ desk deploy --profile skew-protection --dir ./my-app --version v2
 ```
 
 ICC will detect the new versions via pod labels and create HTTPRoute rules to
-route traffic to the correct version based on the `__plt_dpl` cookie.
+route pinned requests using `?dpl=<version>`; this profile defaults to query
+routing rather than cookie routing.
 
 Workflow apps declare `PLT_WORKFLOW=true` with a Dockerfile `ENV` instruction or
 in the file passed to `--envfile`. Set it explicitly to `false` to disable workflow
