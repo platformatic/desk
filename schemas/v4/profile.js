@@ -76,7 +76,13 @@ const IccSpecificSchema = Type.Object({
     client_secret: Type.Optional(Type.String()),
     valid_emails: Type.Optional(Type.String())
   }))),
-  secrets: Type.Optional(Type.Record(Type.String(), Type.String()))
+  secrets: Type.Optional(Type.Record(Type.String(), Type.String())),
+  // Extra environment variables for the ICC container, appended by the
+  // chart after its own. Declared here because parsing drops unknown keys.
+  env: Type.Optional(Type.Array(Type.Object({
+    name: Type.String(),
+    value: Type.String()
+  })))
 })
 
 const ImagePullSecretSchema = Type.Object({
