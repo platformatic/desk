@@ -417,6 +417,11 @@ This profile:
 - Sets `DEV_K8S=true` to enable Platformatic DB service file watching
 - Uses the same base image (`node:22.20.0-alpine`) as production for native module compatibility
 - Enables ICC skew protection, so `desk deploy` creates a separate versioned workload for every deploy (see [`deploy`](#deploy))
+- Adds a development-only "Log in as" to the ICC login page, next to GitHub,
+  to test teams and permissions with several users: log in with GitHub as the
+  super-admin (an email in `GITHUB_OAUTH_VALID_EMAILS`), invite test accounts
+  in Settings > Users, then use "Log in as" with their emails. It bypasses
+  authentication, so it is for local clusters only
 
 When code changes are made in the local repositories, the services will automatically reload.
 

@@ -62,6 +62,8 @@ platformatic:
           default_routing_mode: query       # query | cookie; per-app override in ICC settings
         icc_jobs:
           enable: true
+        invite_users:
+          enable: true                     # "Invite users" in Settings > Users (chart > 4.3.0)
 
       login_methods:
         google:
@@ -74,6 +76,17 @@ platformatic:
           client_id: "{{ GITHUB_OAUTH_CLIENT_ID }}"
           client_secret: "{{ GITHUB_OAUTH_CLIENT_SECRET }}"
           valid_emails: "{{ GITHUB_OAUTH_VALID_EMAILS }}"
+        # Development-only "Log in as" on the login page: signs in as any
+        # existing account by email, to test teams and permissions with
+        # several users. Adds `dev` to VITE_SUPPORTED_LOGINS.
+        dev:
+          enable: true
+
+      env:
+        # Turns on the gateway route behind "Log in as" (GET /api/login/dev).
+        # It bypasses authentication: local clusters only.
+        - name: PLT_DEV_LOGIN_AS
+          value: "true"
 
       log_level: info
 

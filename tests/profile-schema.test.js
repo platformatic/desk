@@ -68,7 +68,10 @@ test('parse a full v4 profile', async t => {
           },
           secrets: {
             icc_session: 'aaaaaaaaaaaaaaaaaaaaaaaa'
-          }
+          },
+          env: [
+            { name: 'PLT_DEV_LOGIN_AS', value: 'true' }
+          ]
         },
 
         machinist: {
