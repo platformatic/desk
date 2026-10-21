@@ -16,6 +16,7 @@ Contents:
     * [`get-plan`](#get-plan)
 * [Troubleshooting](#troubleshooting)
 * [Examples](#examples)
+    * [Slack notifications](#slack-notifications)
 
 
 ## Prerequisites
@@ -424,6 +425,65 @@ This profile:
   authentication, so it is for local clusters only
 
 When code changes are made in the local repositories, the services will automatically reload.
+
+#### Slack notifications
+
+Create a Slack app for ICC to post notifications to a test channel. ICC sends
+messages through Slack's API; no separate bot process or event subscriptions
+are needed.
+
+1. Open the Slack app dashboard in your **web browser**, not the desktop app:
+   https://api.slack.com/apps
+2. Click **Create New App** and choose **Blank app** (called **From scratch**
+   in some versions of the setup). Name it **ICC Notifications** and select
+   your test workspace.
+3. Under **Bot Token Scopes**, add **`chat:write`**. If the setup asks which
+   events to subscribe to, leave the event subscriptions empty. Finish creating
+   the app. If scopes were not offered during setup, add `chat:write` under
+   **OAuth & Permissions → Bot Token Scopes** afterward.
+4. Open **OAuth & Permissions**, click **Install to Workspace**, and approve
+   the permission. Your workspace may require an administrator's approval.
+5. Copy the **Bot User OAuth Token**, which starts with `xoxb-`, into Desk's
+   local, gitignored `.env`:
+
+   ```dotenv
+   PLT_NOTIFICATIONS_SLACK_TOKEN=your-bot-token
+   ```
+
+6. Open the destination channel in Slack and invite the bot:
+
+   ```text
+   /invite @ICC Notifications
+   ```
+
+7. Click the channel name to open its details. Copy the **Channel ID** shown
+   at the bottom and add it to the same `.env`:
+
+   ```dotenv
+   PLT_NOTIFICATIONS_SLACK_CHANNEL=your-channel-id
+   ```
+
+8. In `profiles/development.yaml`, configure the notification providers under
+   `platformatic.services.icc`:
+
+   ```yaml
+   notifications:
+     enable: true
+     providers: [slack] # Use [email, slack] when email is also configured.
+   ```
+
+   Keep the existing `slack.token` and `slack.channel` environment-variable
+   placeholders. Set `enable: false` to stop delivery without clearing settings.
+9. Apply the profile when creating the development cluster. For an existing
+   deployment, apply the updated Helm values and restart ICC to load changed
+   credentials. Provider selection and channel settings seed PostgreSQL only
+   once; if settings already exist, update `providers` and `slackChannel` through
+   `PATCH /notifications/settings` as an administrator.
+
+Keep real tokens and personal addresses in your local `.env`, not in committed
+profiles. This setup requires the ICC notifications service and the corresponding
+Helm chart support. See [development notification configuration](profiles/README.md#development-notifications)
+for the local chart override and email settings.
 
 ### Skew Protection Profile
 

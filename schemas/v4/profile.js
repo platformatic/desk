@@ -70,6 +70,28 @@ const ScalerSchema = Type.Object({
 })
 
 const IccSpecificSchema = Type.Object({
+  notifications: Type.Optional(Type.Object({
+    enable: Type.Boolean(),
+    providers: Type.Optional(Type.Array(Type.Union([Type.Literal('email'), Type.Literal('slack')]))),
+    minimum_level: Type.Optional(Type.Union([Type.Literal('info'), Type.Literal('warn'), Type.Literal('critical')])),
+    excluded_services: Type.Optional(Type.Array(Type.String())),
+    email: Type.Optional(Type.Object({
+      from: Type.Optional(Type.String()),
+      recipients: Type.Optional(Type.Array(Type.String())),
+      smtp: Type.Optional(Type.Object({
+        host: Type.Optional(Type.String()),
+        port: Type.Optional(Type.Integer({ minimum: 1, maximum: 65535 })),
+        secure: Type.Optional(Type.Boolean()),
+        require_tls: Type.Optional(Type.Boolean()),
+        user: Type.Optional(Type.String()),
+        password: Type.Optional(Type.String())
+      }))
+    })),
+    slack: Type.Optional(Type.Object({
+      token: Type.Optional(Type.String()),
+      channel: Type.Optional(Type.String())
+    }))
+  })),
   login_methods: Type.Optional(Type.Record(Type.String(), Type.Object({
     enable: Type.Boolean(),
     client_id: Type.Optional(Type.String()),

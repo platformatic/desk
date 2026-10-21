@@ -10,3 +10,4 @@ CREATE DATABASE trafficante;
 CREATE DATABASE traffic_inspector;
 CREATE DATABASE cluster_manager;
 CREATE DATABASE workflow;
+CREATE DATABASE notifications;

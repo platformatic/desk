@@ -1,6 +1,20 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { parseProfile } from '../schemas/profile.js'
+import { loadYamlFile } from '../lib/utils.js'
+import { fileURLToPath } from 'node:url'
+
+test('development notification settings survive profile parsing', async () => {
+  const profilePath = fileURLToPath(new URL('../profiles/development.yaml', import.meta.url))
+  const profile = await loadYamlFile(profilePath)
+  const parsed = parseProfile(profile)
+
+  assert.deepEqual(parsed.platformatic.services.icc.notifications, profile.platformatic.services.icc.notifications)
+  assert.equal(parsed.platformatic.services.icc.notifications.enable, false)
+
+  profile.platformatic.services.icc.notifications.providers = ['unsupported']
+  assert.throws(() => parseProfile(profile), /Validation failed/)
+})
 
 test('parse a minimum v4 profile', async t => {
   const minimumProfile = {

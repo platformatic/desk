@@ -88,6 +88,27 @@ platformatic:
         - name: PLT_DEV_LOGIN_AS
           value: "true"
 
+      # Maps directly to services.icc.notifications in the Helm chart.
+      # Provider settings seed the database once; later changes use the API.
+      notifications:
+        enable: false
+        providers: [email, slack]
+        minimum_level: info
+        excluded_services: []
+        email:
+          from: "{{ PLT_NOTIFICATIONS_SMTP_USER }}"
+          recipients: ["{{ PLT_NOTIFICATIONS_EMAIL_TO }}"]
+          smtp:
+            host: smtp.gmail.com
+            port: 587
+            secure: false
+            require_tls: true
+            user: "{{ PLT_NOTIFICATIONS_SMTP_USER }}"
+            password: "{{ PLT_NOTIFICATIONS_SMTP_PASSWORD }}"
+        slack:
+          token: "{{ PLT_NOTIFICATIONS_SLACK_TOKEN }}"
+          channel: "{{ PLT_NOTIFICATIONS_SLACK_CHANNEL }}"
+
       log_level: info
 
       secrets:
